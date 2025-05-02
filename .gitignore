@@ -1,0 +1,17 @@
+# Visual Studio Code
+.vscode/
+
+# Компилирани обекти и бинарни
+*.o
+*.obj
+*.exe
+*.out
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Други временни файлове
+*.log
