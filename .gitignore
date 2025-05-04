@@ -14,5 +14,9 @@ cmake_install.cmake
 Makefile
 cmake-build-debug
 
+cmake-build-debug/
+.idea/
+
 # Други временни файлове
 *.log
+*.user
