@@ -12,11 +12,11 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
-cmake-build-debug
 
-cmake-build-debug/
+# CLion и CMake временни файлове
 .idea/
+cmake-build-debug/
+*.user
 
 # Други временни файлове
 *.log
-*.user
