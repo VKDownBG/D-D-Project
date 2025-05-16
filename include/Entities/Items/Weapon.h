@@ -1,18 +1,13 @@
-#include "Item.h"
-
 #ifndef Weapon_h
 #define Weapon_h
 
-class Weapon : public Item
-{
-public:
-    Weapon();
+#include "Item.h"
 
-    Weapon(const std::string& n, double bonus, int level);
+class Weapon final : public Item {
+public:
+    Weapon(const std::string &n, double bonus, int level);
 
     Weapon &operator=(const Weapon &other);
-
-    std::string getType() const override;
 };
 
 #endif

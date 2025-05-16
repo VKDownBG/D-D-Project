@@ -1,7 +1,16 @@
 #include "../../../include/Entities/Items/Item.h"
 
-std::string Item::getName() const { return this->name; }
+Item::Item(ItemType type, std::string name, double powerBonus, int requiredLevel) : name(std::move(name)), type(type),
+    powerBonus(powerBonus), requiredLevel(requiredLevel) {
+}
 
-double Item::getPowerBonus() const { return this->powerBonus; }
+ItemType Item::getType() const {
+    return type;
+}
 
-int Item::getRequiredLevel() const { return this->requiredLevel; }
+
+std::string Item::getName() const { return name; }
+
+double Item::getPowerBonus() const { return powerBonus / 100; }
+
+int Item::getRequiredLevel() const { return requiredLevel; }

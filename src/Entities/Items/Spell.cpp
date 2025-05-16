@@ -1,21 +1,9 @@
 #include "../../../include/Entities/Items/Spell.h"
 
-Spell::Spell()
-{
-    this->name = "None";
-    this->powerBonus = 0.0;
-    this->requiredLevel = 0;
+Spell::Spell(const std::string &n, double bonus, int level) : Item(ItemType::SPELL, n, bonus, level) {
 }
 
-Spell::Spell(const std::string &n, double bonus, int level)
-{
-    this->name = n;
-    this->powerBonus = bonus;
-    this->requiredLevel = level;
-}
-
-Spell &Spell::operator=(const Spell &other)
-{
+Spell &Spell::operator=(const Spell &other) {
     if (this == &other)
         return *this;
 
@@ -25,5 +13,3 @@ Spell &Spell::operator=(const Spell &other)
 
     return *this;
 }
-
-std::string Spell::getType() const { return "Spell"; }

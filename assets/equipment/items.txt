@@ -1,0 +1,168 @@
+[WEAPON_LEVEL_1
+Iron Sword
+Rusty Dagger
+Wooden Club
+Short Spear
+Apprentice’s Staff
+]
+[ARMOR_LEVEL_1
+Leather Vest
+Cloth Robe
+Padded Tunic
+Worn Shield
+Apprentice’s Hood
+]
+[SPELL_LEVEL_1
+Spark
+Healing Touch
+Frost Shard
+Minor Flame
+Wind Whisper
+]
+[WEAPON_LEVEL_2
+Steel Sword
+Battle Axe
+Hunting Bow
+Reinforced Dagger
+Journeyman’s Staff
+]
+[ARMOR_LEVEL_2
+Chainmail Vest
+Reinforced Leather
+Iron Shield
+Padded Mail
+Journeyman’s Hood
+]
+[SPELL_LEVEL_2
+Frost Bolt
+Greater Heal
+Fire Spark
+Wind Blade
+Water Jet
+]
+[WEAPON_LEVEL_3
+Mithril Blade
+Warhammer
+Composite Bow
+Assassin’s Dagger
+Adept’s Staff
+]
+[ARMOR_LEVEL_3
+Scale Mail
+Hardened Leather
+Steel Shield
+Chain Leggings
+Adept’s Robe
+]
+[SPELL_LEVEL_3
+Ice Lance
+Fireball
+Lightning Strike
+Mana Wave
+Gust of Wind
+]
+[WEAPON_LEVEL_4
+Guardian Sword
+Thunder Axe
+Recurve Bow
+Shadowfang Dagger
+Scholar’s Staff
+]
+[ARMOR_LEVEL_4
+Brigandine Armor
+Dragonhide Vest
+Tower Shield
+Brigandine Leggings
+Scholar’s Cloak
+]
+[SPELL_LEVEL_4
+Blizzard
+Flame Burst
+Chain Lightning
+Greater Heal
+Gale Force
+]
+[WEAPON_LEVEL_5
+Rune Greatsword
+Earthshaker Hammer
+Elven Longbow
+Venom Dagger
+Enchanter’s Staff
+]
+[ARMOR_LEVEL_5
+Plate Mail
+Wyrmscale Mail
+Aegis Shield
+Plate Greaves
+Enchanter’s Robe
+]
+[SPELL_LEVEL_5
+Meteor Shower
+Frost Nova
+Thunderstorm
+Mass Heal
+Tempest
+]
+[WEAPON_LEVEL_6
+Dragonslayer Blade
+Titan’s Mace
+Phoenix Bow
+Shadowstrike Dagger
+Archmage’s Staff
+]
+[ARMOR_LEVEL_6
+Celestial Plate
+Obsidian Scale
+Guardian’s Shield
+Celestial Greaves
+Archmage’s Robe
+]
+[SPELL_LEVEL_6
+Earthquake
+Inferno
+Chain Storm
+Divine Light
+Hurricane
+]
+[WEAPON_LEVEL_7
+Excalibur
+Stormbreaker Axe
+Dragonheart Bow
+Nightstalker Dagger
+Sage’s Staff
+]
+[ARMOR_LEVEL_7
+Holy Plate
+Voidscale Armor
+Radiant Shield
+Holy Greaves
+Sage’s Cloak
+]
+[SPELL_LEVEL_7
+Divine Storm
+Lava Burst
+Maelstrom
+Resurrection
+Cyclone
+]
+[WEAPON_LEVEL_8
+Celestial Sword
+Oblivion Axe
+Eternal Bow
+Doom Dagger
+Archon’s Staff
+]
+[ARMOR_LEVEL_8
+Aegis of Eternity
+Nethersteel Plate
+Bulwark Shield
+Aegis Greaves
+Archon’s Robe
+]
+[SPELL_LEVEL_8
+Apocalypse
+Absolute Zero
+Thunderlord’s Wrath
+Divine Intervention
+Tempest of Souls
+]

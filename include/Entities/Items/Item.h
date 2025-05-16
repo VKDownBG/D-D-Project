@@ -3,20 +3,31 @@
 
 #include <iostream>
 
-class Item
-{
+enum class ItemType {
+    WEAPON,
+    ARMOR,
+    SPELL
+};
+
+class Item {
 protected:
     std::string name;
-    double powerBonus;
-    int requiredLevel;
+    ItemType type;
+    double powerBonus = 0;
+    int requiredLevel = 0;
 
 public:
-    virtual std::string getType() const = 0;
-    virtual ~Item() {}
+    Item(ItemType type, std::string name, double powerBonus, int requiredLevel);
 
-    std::string getName() const;
-    double getPowerBonus() const;
-    int getRequiredLevel() const;
+    virtual ~Item() = default;
+
+    [[nodiscard]] ItemType getType() const;
+
+    [[nodiscard]] std::string getName() const;
+
+    [[nodiscard]] double getPowerBonus() const;
+
+    [[nodiscard]] int getRequiredLevel() const;
 };
 
 #endif

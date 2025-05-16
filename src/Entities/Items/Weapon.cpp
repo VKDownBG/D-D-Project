@@ -1,21 +1,9 @@
 #include "../../../include/Entities/Items/Weapon.h"
 
-Weapon::Weapon()
-{
-    this->name = "None";
-    this->powerBonus = 0.0;
-    this->requiredLevel = 0;
+Weapon::Weapon(const std::string &n, double bonus, int level) : Item(ItemType::WEAPON, n, bonus, level) {
 }
 
-Weapon::Weapon(const std::string &n, double bonus, int level)
-{
-    this->name = n;
-    this->powerBonus = bonus;
-    this->requiredLevel = level;
-}
-
-Weapon &Weapon::operator=(const Weapon &other)
-{
+Weapon &Weapon::operator=(const Weapon &other) {
     if (this == &other)
         return *this;
 
@@ -25,5 +13,3 @@ Weapon &Weapon::operator=(const Weapon &other)
 
     return *this;
 }
-
-std::string Weapon::getType() const { return "Weapon"; }

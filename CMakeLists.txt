@@ -1,37 +1,73 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 project(DANDD)
 
-# Set SFML paths
-set(SFML_DIR "C:/SFML/lib/cmake/SFML")
-set(SFML_INCLUDE_DIR "C:/SFML/include")
+set(RAYLIB_DIR "C:/DandD/libs/raylib-5.0_win64_mingw-w64")
+include_directories(${RAYLIB_DIR}/include)
+link_directories(${RAYLIB_DIR}/lib)
 
-# Find SFML with components (new 3.0 syntax)
-find_package(SFML 3.0 COMPONENTS Graphics Window System REQUIRED)
-
-# Add executable
 add_executable(DANDD
-        src/Entities/Hero.cpp
-        src/Entities/Items/Item.cpp
-        src/Entities/Items/Inventory.cpp
-        src/Entities/Items/Armor.cpp
-        src/Entities/Items/Weapon.cpp
-        src/Entities/Items/Spell.cpp
-        src/Entities/Monsters.cpp
+        include/UI/managers/UIManager.h
+        include/UI/screens/MainMenu.h
+        include/UI/screens/GameHUD.h
+        include/UI/screens/InventoryUI.h
+        include/UI/widgets/Button.h
+        include/UI/widgets/ProgressBar.h
+        src/UI/managers/UIManager.cpp
+        src/UI/screens/GameHUD.cpp
+        src/UI/screens/InventoryUI.cpp
+        src/UI/screens/MainMenu.cpp
+        src/UI/widgets/Button.cpp
+        src/UI/widgets/ProgressBar.cpp
+        src/UI/test.cpp
+        include/UI/widgets/Icon.h
+        include/UI/panels/EquipmentPanel.h
+        src/UI/panels/EquipmentPanel.cpp
+        src/UI/widgets/Icon.cpp
+        #        src/Entities/Hero/Hero.cpp
+        #        src/Entities/Items/Item.cpp
+        #        src/Entities/Hero/Inventory.cpp
+        #        src/Entities/Items/Armor.cpp
+        #        src/Entities/Items/Weapon.cpp
+        #        src/Entities/Items/Spell.cpp
+        #        src/Entities/Monster.cpp
+        #        include/Core/MapSystem.h
+        #        src/Core/MapSystem.cpp
+        #        include/Core/GameManager.h
+        #        include/Core/BattleSystem.h
+        #        src/Core/GameManager.cpp
+        #        "include/Utils/Position.h"
+        #        src/Utils/Position.cpp
+        #        include/Entities/Treasure.h
+        #        src/Entities/Treasure.cpp
+        #        include/Utils/ProbabilitySystem.h
+        #        src/Utils/ProbabilitySystem.cpp
+        #        src/Core/BattleSystem.cpp
+        #        include/Utils/Attack.h
 )
 
-# Link SFML (new 3.0 target names)
-target_include_directories(DANDD PRIVATE include ${SFML_INCLUDE_DIR})
 target_link_libraries(DANDD PRIVATE
-        SFML::Graphics
-        SFML::Window
-        SFML::System
+        raylib
+        opengl32
+        gdi32
+        winmm
 )
 
-# Copy DLLs and assets
 add_custom_command(TARGET DANDD POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "C:/SFML/SFML-3.0.0/bin/"  # Updated path
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${RAYLIB_DIR}/lib/raylib.dll"
         $<TARGET_FILE_DIR:DANDD>
 )
 
 file(COPY assets/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+
+file(GLOB DLL_FILES "${RAYLIB_DIR}/lib/*.dll")
+foreach (DLL_FILE ${DLL_FILES})
+    add_custom_command(TARGET DANDD POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            "${DLL_FILE}"
+            $<TARGET_FILE_DIR:DANDD>
+    )
+endforeach ()
