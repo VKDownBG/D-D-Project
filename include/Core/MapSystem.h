@@ -32,6 +32,8 @@ public:
 
     const std::vector<Treasure> &getTreasures() const;
 
+    void removeTreasure(const Treasure &treasure);
+
     int GetTreasureCount() const;
 
     int GetCurrentLevel() const;

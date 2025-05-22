@@ -159,6 +159,10 @@ const std::vector<Treasure> &Map::getTreasures() const {
     return treasures;
 }
 
+void Map::removeTreasure(const Treasure &treasure) {
+    treasures.erase(std::remove(treasures.begin(), treasures.end(), treasure), treasures.end());
+}
+
 int Map::GetTreasureCount() const {
     return treasures.size();
 }
