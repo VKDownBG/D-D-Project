@@ -2,7 +2,7 @@
 // Created by Lenovo on 5.5.2025 г.
 //
 
-#include "Entities/Treasure.h"
+#include "C:/DandD/include/Entities/Treasure.h"
 
 Treasure::Treasure(const Position &pos): pos(-1, -1) {
     this->pos = pos;

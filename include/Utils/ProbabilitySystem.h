@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-#include "Entities/Items/Item.h"
+#include "C:/DandD/include/Items/Item.h"
 #include <random>
 #include <fstream>
 
@@ -17,12 +17,20 @@ namespace RandomUtils {
 
     template<typename T>
     inline T randomValue(T min, T max) {
-        std::uniform_int_distribution<T> dist(min, max);
-        return dist(gen);
+        if constexpr (std::is_integral_v<T>) {
+            std::uniform_int_distribution<T> dist(min, max);
+            return dist(gen);
+        } else {
+            std::uniform_real_distribution<T> dist(min, max);
+            return dist(gen);
+        }
     }
 }
 
 class ItemGenerator {
+public:
+    static Item *generateRandomItem(int level);
+
 private:
     static std::string chooseName(const std::vector<std::string> &names) {
         static std::random_device rd;
@@ -114,9 +122,6 @@ private:
             default: return 0.0;
         };
     }
-
-public:
-    static Item *generateRandomItem(int level);
 };
 
 

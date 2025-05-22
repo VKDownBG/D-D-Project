@@ -4,49 +4,52 @@
 #ifndef MAPSYSTEM_H
 #define MAPSYSTEM_H
 
-#include "Utils/Position.h"
-#include "Entities/Monster.h"
-#include "Entities/Treasure.h"
+#include "C:/DandD/include/Utils/Position.h"
+#include "C:/DandD/include/Entities/Monster.h"
+#include "C:/DandD/include/Entities/Treasure.h"
 #include <vector>
 #include <string>
 
 class Map {
-private:
-    std::vector<std::vector<char> > grid;
-
-    Position startPos;
-
-    std::vector<Monster> enemies;
-    std::vector<Treasure> treasures;
-
-    long width = 0, height = 0;
-
-    int currentLevel = 1;
-
-    void parseGridLine(const std::string &line, int rowIndex);
-
-    void validateMap() const;
-
-    static int parseLevelNumber(const std::string &line);
-
 public:
     Map();
 
     void loadFromFile(const std::string &filePath, const std::string &levelTag);
 
-    [[nodiscard]] Position getStartPos() const;
+    Position getStartPos() const;
 
-    [[nodiscard]] bool isPassable(int x, int y) const;
+    bool isPassable(int x, int y) const;
 
-    [[nodiscard]] char getCell(const Position &pos) const;
+    char getCell(const Position &pos) const;
 
-    [[nodiscard]] int getWidth() const;
+    int getWidth() const;
 
-    [[nodiscard]] int getHeight() const;
+    int getHeight() const;
 
-    [[nodiscard]] const std::vector<Monster> &getMonsters() const;
+    const std::vector<Monster> &getMonsters() const;
 
-    [[nodiscard]] const std::vector<Treasure> &getTreasures() const;
+    int GetMonsterCount() const;
+
+    const std::vector<Treasure> &getTreasures() const;
+
+    int GetTreasureCount() const;
+
+    int GetCurrentLevel() const;
+
+private:
+    std::vector<std::vector<char> > grid;
+    size_t width, height;
+    int currentLevel;
+
+    Position startPos;
+    std::vector<Monster> enemies;
+    std::vector<Treasure> treasures;
+
+    void validateMap() const;
+
+    static int parseLevelNumber(const std::string &line);
+
+    void parseGridLine(const std::string &line, int rowIndex);
 };
 
 #endif //MAPSYSTEM_H

@@ -2,24 +2,17 @@
 // Created by Lenovo on 4.5.2025 г.
 //
 
-#include "Core/MapSystem.h"
+#include "C:/DandD/include/Core/MapSystem.h"
 #include <algorithm>
 #include <fstream>
 #include <stdexcept>
 
-Map::Map() : startPos(-1, -1) {
+Map::Map() : width(0), height(0), currentLevel(1), startPos(-1, -1) {
 }
 
 void Map::validateMap() const {
     if (grid.empty()) {
         throw std::runtime_error("Map is empty!");
-    }
-
-    const size_t expectedWidth = grid[0].size();
-    for (const auto &row: grid) {
-        if (row.size() != expectedWidth) {
-            throw std::runtime_error("Map is not rectangular!");
-        }
     }
 
     if (startPos.x < 0 || startPos.y < 0) {
@@ -40,29 +33,32 @@ int Map::parseLevelNumber(const std::string &levelTag) {
 
 void Map::parseGridLine(const std::string &line, int rowIndex) {
     std::vector<char> row;
-    int x = 0;
-    for (char c: line) {
-        if (c == ' ') {
-            x++;
-            continue;
-        }
 
+    for (size_t x = 0; x < line.size(); x++) {
+        char c = line[x];
+        if (c == ' ') continue;
+
+        const size_t gridX = row.size();
         row.push_back(c);
-        Position pos(x, grid.size());
+        Position pos(static_cast<int>(gridX), rowIndex);
 
         if (c == 'H') {
             startPos = pos;
+
+            row.back() = 'H';
         } else if (c == 'M' || c == 'B') {
             enemies.emplace_back(
-                pos, (c == 'B' ? currentLevel + 1 : currentLevel),
-                (c == 'B'
-                     ? MonsterType::Boss
-                     : MonsterType::Monster)
+                pos,
+                (c == 'B' ? currentLevel + 1 : currentLevel),
+                (c == 'B' ? MonsterType::BOSS : MonsterType::MONSTER)
             );
+
+            row.back() = (c == 'B' ? 'B' : 'M');
         } else if (c == 'T') {
             treasures.emplace_back(pos);
+
+            row.back() = 'T';
         }
-        x++;
     }
 
     if (!row.empty()) {
@@ -86,9 +82,9 @@ void Map::loadFromFile(const std::string &filePath, const std::string &levelTag)
     bool readingLevel = false;
     bool readingData = false;
 
-
     while (std::getline(file, line)) {
-        line.erase(std::remove_if(line.begin(), line.end(), ::isspace), line.end());
+        line.erase(0, line.find_first_not_of(" \t"));
+        line.erase(line.find_last_not_of(" \t") + 1);
 
         if (line.empty()) continue;
 
@@ -105,15 +101,22 @@ void Map::loadFromFile(const std::string &filePath, const std::string &levelTag)
 
             if (readingData) {
                 if (line[0] == '[') break;
-                parseGridLine(line, grid.size());
+                parseGridLine(line, static_cast<int>(grid.size()));
             }
         }
-
-        validateMap();
-
-        height = grid.size();
-        width = grid[0].size();
     }
+
+    file.close();
+
+    try {
+        validateMap();
+    } catch (const std::runtime_error &e) {
+        std::cerr << "Map validation error: " << e.what() << std::endl;
+        throw;
+    }
+
+    height = grid.size();
+    width = grid[0].size();
 }
 
 Position Map::getStartPos() const {
@@ -121,10 +124,18 @@ Position Map::getStartPos() const {
 }
 
 bool Map::isPassable(int x, int y) const {
-    return x >= 0 && y >= 0 && x < 100 && y < 100 && grid[x][y] == '.';
+    if (x < 0 || y < 0 || x >= width || y >= height) {
+        return false;
+    }
+
+    return grid[y][x] == '.';
 }
 
 char Map::getCell(const Position &pos) const {
+    if (pos.x < 0 || pos.y < 0 || pos.x >= width || pos.y >= height) {
+        return '#';
+    }
+
     return grid[pos.x][pos.y];
 }
 
@@ -140,6 +151,18 @@ const std::vector<Monster> &Map::getMonsters() const {
     return enemies;
 }
 
+int Map::GetMonsterCount() const {
+    return enemies.size();
+}
+
 const std::vector<Treasure> &Map::getTreasures() const {
     return treasures;
+}
+
+int Map::GetTreasureCount() const {
+    return treasures.size();
+}
+
+int Map::GetCurrentLevel() const {
+    return currentLevel;
 }

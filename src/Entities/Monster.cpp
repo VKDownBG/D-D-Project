@@ -1,45 +1,116 @@
 #include "../../include/Entities/Monster.h"
 
-Monster::Monster(Position &pos, int curlvl, MonsterType _type) : strength(25), mana(25), health(50), level(curlvl),
-                                                                 scaleArmor(15),
-                                                                 pos(-1, -1),
-                                                                 type(_type) {
+Monster::Monster(const Position &pos, int currentLevel, MonsterType _type)
+    : strength(25),
+      mana(25),
+      health(50),
+      maxHealth(50),
+      level(currentLevel),
+      scaleArmor(15),
+      pos(pos),
+      type(_type) {
     this->health += this->level * 10;
+
     this->mana += this->level * 10;
+
     this->strength += this->level * 10;
+
+    this->maxHealth = this->health;
 
     if (level < 17)
         this->scaleArmor += this->level * 5;
     else
         this->scaleArmor = 95;
+
+    std::stringstream ss;
+
+    ss << "Level " << this->level << " dragon";
+
+    this->name = ss.str();
+}
+
+std::string Monster::GetName() const {
+    return name;
+}
+
+int Monster::GetStrength() const {
+    return strength;
+}
+
+int Monster::GetMana() const {
+    return mana;
+}
+
+double Monster::GetHealth() const {
+    return health;
+}
+
+int Monster::GetMaxHealth() const {
+    return maxHealth;
+}
+
+void Monster::SetHealth(int newHealth) {
+    health = newHealth;
+
+    if (health < 0)
+        health = 0;
+
+    if (health > maxHealth)
+        health = maxHealth;
+}
+
+void Monster::takeDamage(double damage) {
+    health -= damage;
+
+    if (health < 0)
+        health = 0;
+}
+
+bool Monster::hasArmor() const {
+    return true;
+}
+
+bool Monster::hasWeapon() const {
+    return true;
+}
+
+bool Monster::hasSpell() const {
+    return true;
+}
+
+float Monster::GetWeaponBonus() const {
+    return 0.0f;
+}
+
+float Monster::GetSpellBonus() const {
+    return 0.0f;
+}
+
+float Monster::GetArmorReduction() const {
+    return static_cast<float>(scaleArmor) / 100;
+}
+
+bool Monster::isDefeated() const {
+    return health <= 0;
 }
 
 void Monster::setPosition(const Position &pos) {
     this->pos = pos;
 }
 
-Position Monster::getPosition() const {
+Position Monster::GetPosition() const {
     return pos;
 }
 
-int Monster::getStrength() const {
-    return strength;
-}
-
-int Monster::getMana() const {
-    return mana;
-}
-
-int Monster::getHealth() const {
-    return health;
-}
-
-int Monster::getDamageResist() const {
+int Monster::GetDamageResist() const {
     return scaleArmor;
 }
 
 
+int Monster::GetLevel() const {
+    return level;
+}
 
-MonsterType Monster::getType() const { return type; }
-
-bool Monster::isDefeated() const { return health <= 0; }
+MonsterType Monster::GetType() const {
+    return type;
+}

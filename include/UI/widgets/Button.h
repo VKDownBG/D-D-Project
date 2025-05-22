@@ -1,37 +1,72 @@
-//
-// Created by Lenovo on 15.5.2025 г..
-//
-
 #ifndef BUTTON_H
 #define BUTTON_H
 
+#include "raylib.h"
 #include <functional>
 #include <string>
-#include "raylib.h"
 
 class Button {
-private:
-    Rectangle bounds;
-    std::string label;
-    Font font = GetFontDefault();
-    Texture2D texture = {0};
-    std::function<void()> action;
-
-    bool isHovered = false;
-    bool isPressed = false;
-
 public:
+    Rectangle bounds;
+
+    Button();
+
     Button(Rectangle rect, std::string text, std::function<void()> onClick);
 
-    void SetFont(Font customFont);
+    Button(Rectangle rect, const Texture2D &buttonTexture, std::function<void()> onClick);
 
-    void SetTexture(Texture2D customTexture);
+    void SetFont(const Font &customFont);
 
-    void Update();
+    void SetTexture(const Texture2D &customTexture);
+
+    void SetColors(Color normal, Color hover, Color pressed, Color text);
+
+    void SetBorder(Color color, int thickness = 1);
+
+    void SetRoundedCorners(float radius);
+
+    void EnableHoverAnimation(bool enable = true, float scale = 1.1f, float speed = 5.0f);
+
+    void Update(Vector2 mousePosition = {0, 0});
 
     void Draw() const;
 
     [[nodiscard]] bool IsPressed() const;
+
+    [[nodiscard]] bool IsHovered() const;
+
+    [[nodiscard]] bool IsActive() const;
+
+    void SetActive(bool active);
+
+    Rectangle GetBounds() const;
+
+    //Texture2D &GetTexture() const;
+
+    ~Button() = default;
+
+private:
+    std::string label;
+    Font font;
+    Texture2D texture;
+    std::function<void()> action;
+
+    bool isHovered;
+    bool isPressed;
+    bool isActive;
+    float animationProgress;
+
+    Color normalColor;
+    Color hoverColor;
+    Color pressedColor;
+    Color textColor;
+    Color borderColor;
+    int borderThickness;
+    float cornerRadius;
+
+    bool useHoverAnimation;
+    float hoverScale;
+    float animationSpeed;
 };
 
 #endif //BUTTON_H

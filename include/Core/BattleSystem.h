@@ -5,9 +5,9 @@
 #ifndef BATTLESYSTEM_H
 #define BATTLESYSTEM_H
 
-#include "Entities/Hero/Hero.h";
-#include "Entities/Monster.h";
-#include "Utils/ProbabilitySystem.h";
+#include "../Entities/Hero.h"
+#include "C:/DandD/include/Entities/Monster.h";
+#include "C:/DandD/include/Utils/Attack.h";
 
 enum class AttackType {
     WEAPON,
@@ -21,25 +21,40 @@ enum class Starts {
 };
 
 class BattleSystem {
-private:
-    Hero &m_hero;
-    Monster &m_monster;
-
-private:
-    static Starts chooseStart() {
-        return static_cast<Starts>(RandomUtils::randomValue<int>(0, 1));
-    }
-
 public:
-    BattleSystem(Hero &hero, Monster &monster);
+    void StartBattle(Hero *player, Monster *monster);
 
-    void startBattle();
+    void EndBattle();
 
-    void playerTurn(AttackType choise);
+    void ProcessPlayerTurn(AttackType playerChoise);
 
-    void monsterTurn();
+    void ProcessMonsterTurn();
 
-    bool isBattleOver() const;
+    void CalculateDamage(bool isPlayerAtacking);
+
+    bool IsBattleOver();
+
+    bool isPlayerVictorious() const;
+
+    Hero *GetCurrentPlayer() const;
+
+    Monster *GetCurrentEnemy() const;
+
+    int GetTurnNumber() const;
+
+    void OnBattleEnded(bool isVictory);
+
+private:
+    Hero *player;
+    Monster *enemy;
+    int currentTurn;
+    bool isPlayerTurn;
+
+    void applyBonusesAndArmor(int &rawDamage, bool isPlayerAtacking);
+
+    void handleVictory();
+
+    void handleDefeat();
 };
 
 #endif //BATTLESYSTEM_H
