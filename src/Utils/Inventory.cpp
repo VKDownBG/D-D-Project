@@ -5,19 +5,19 @@
 Inventory::Inventory(Weapon w, Spell s) : weapon(std::move(w)), spell(std::move(s)) {
 }
 
-bool Inventory::newWeapon(const Weapon &replacement, bool forceReplace) {
+bool Inventory::newWeapon(const Weapon &replacement, const bool forceReplace) {
     if (!forceReplace) return false;
     this->weapon = replacement;
     return true;
 }
 
-bool Inventory::newArmor(const Armor &replacement, bool forceReplace) {
+bool Inventory::newArmor(const Armor &replacement, const bool forceReplace) {
     if (!forceReplace) return false;
     this->armor = replacement;
     return true;
 }
 
-bool Inventory::newSpell(const Spell &replacement, bool forceReplace) {
+bool Inventory::newSpell(const Spell &replacement, const bool forceReplace) {
     if (!forceReplace) return false;
     this->spell = replacement;
     return true;

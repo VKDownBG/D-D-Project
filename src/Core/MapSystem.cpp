@@ -139,11 +139,11 @@ char Map::getCell(const Position &pos) const {
     return grid[pos.x][pos.y];
 }
 
-int Map::getWidth() const {
+size_t Map::getWidth() const {
     return width;
 }
 
-int Map::getHeight() const {
+size_t Map::getHeight() const {
     return height;
 }
 
@@ -151,7 +151,7 @@ const std::vector<Monster> &Map::getMonsters() const {
     return enemies;
 }
 
-int Map::GetMonsterCount() const {
+size_t Map::GetMonsterCount() const {
     return enemies.size();
 }
 
@@ -163,7 +163,7 @@ void Map::removeTreasure(const Treasure &treasure) {
     treasures.erase(std::remove(treasures.begin(), treasures.end(), treasure), treasures.end());
 }
 
-int Map::GetTreasureCount() const {
+size_t Map::GetTreasureCount() const {
     return treasures.size();
 }
 

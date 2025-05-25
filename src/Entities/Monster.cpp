@@ -1,26 +1,29 @@
 #include "../../include/Entities/Monster.h"
 
-Monster::Monster(const Position &pos, int currentLevel, MonsterType _type)
+Monster::Monster(const Position &pos, int curlvl, const MonsterType _type)
     : strength(25),
       mana(25),
       health(50),
       maxHealth(50),
-      level(currentLevel),
+      level(curlvl),
       scaleArmor(15),
       pos(pos),
       type(_type) {
-    this->health += this->level * 10;
+    if (curlvl > 1) {
+        this->health += this->level * 10;
 
-    this->mana += this->level * 10;
+        this->mana += this->level * 10;
 
-    this->strength += this->level * 10;
+        this->strength += this->level * 10;
 
-    this->maxHealth = this->health;
+        this->maxHealth = this->health;
 
-    if (level < 17)
-        this->scaleArmor += this->level * 5;
-    else
-        this->scaleArmor = 95;
+        if (level < 17)
+            this->scaleArmor += this->level * 5;
+        else
+            this->scaleArmor = 95;
+    }
+
 
     std::stringstream ss;
 

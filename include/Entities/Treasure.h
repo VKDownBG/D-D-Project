@@ -17,6 +17,8 @@ public:
 
     void markAsCollected();
 
+    bool operator==(const Treasure &other) const;
+
 private:
     Position pos;
     bool collected = false;

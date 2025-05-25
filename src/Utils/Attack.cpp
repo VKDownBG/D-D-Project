@@ -14,38 +14,34 @@ double Attack::calculateWeaponAttack(const Entity &attacker, const Entity &defen
     float baseAttack = attacker.GetStrength();
 
     float weaponBonus = 0.0f;
-    //if (attacker.hasWeapon()) {
     weaponBonus = attacker.GetWeaponBonus();
-    //}
 
-    float totalAttack = baseAttack * (1.0f + weaponBonus);
+    const float totalAttack = baseAttack * (1.0f + weaponBonus);
 
     float armorReduction = 0.0f;
     if (defender.hasArmor()) {
         armorReduction = defender.GetArmorReduction();
     }
 
-    float finalAttack = totalAttack * (1.0f - armorReduction);
+    const float finalAttack = totalAttack * (1.0f - armorReduction);
 
     return finalAttack;
 }
 
 double Attack::calculateSpellAttack(const Entity &attacker, const Entity &defender) {
-    float baseAttack = attacker.GetMana();
+    const float baseAttack = attacker.GetMana();
 
     float spellBonus = 0.0f;
-    //if (attacker.hasSpell()) {
     spellBonus = attacker.GetSpellBonus();
-    // }
 
-    float totalAttack = baseAttack * (1.0f + spellBonus);
+    const float totalAttack = baseAttack * (1.0f + spellBonus);
 
     float armorReduction = 0.0f;
     if (defender.hasArmor()) {
         armorReduction = defender.GetArmorReduction();
     }
 
-    float finalAttack = totalAttack * (1.0f - armorReduction);
+    const float finalAttack = totalAttack * (1.0f - armorReduction);
 
     return finalAttack;
 }
@@ -64,7 +60,7 @@ double Attack::performAttack(const Entity &attacker, Entity &defender, const Att
             break;
 
         default:
-            std::cout << "Unknown typ of attack!" << std::endl;
+            std::cout << "Unknown type of attack!" << std::endl;
             return 0;
     }
 
@@ -90,6 +86,33 @@ double Attack::performAttack(const Entity &attacker, Entity &defender, const Att
     return damage;
 }
 
+double Attack::performAttackSilent(const Entity &attacker, Entity &defender, AttackType type) {
+    double damage = 0.0f;
+    const bool criticalHit = isCriticalHit();
+
+    switch (type) {
+        case AttackType::WEAPON:
+            damage = calculateWeaponAttack(attacker, defender);
+            break;
+
+        case AttackType::SPELL:
+            damage = calculateSpellAttack(attacker, defender);
+            break;
+
+        default:
+            return 0;
+    }
+
+    if (criticalHit) {
+        double bonusDamage = static_cast<int>(damage * 0.5f);
+        damage += bonusDamage;
+    }
+
+    defender.takeDamage(damage);
+
+    return damage;
+}
+
 bool Attack::isCriticalHit() {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -97,6 +120,18 @@ bool Attack::isCriticalHit() {
     int roll = dis(gen);
 
     return (roll <= 25);
+}
+
+bool Attack::checkCriticalHit() {
+    return isCriticalHit();
+}
+
+std::string Attack::getAttackName(const Entity &attacker, AttackType type) {
+    if (type == AttackType::WEAPON) {
+        return "Claw Attack";
+    } else {
+        return "Fire Breath";
+    }
 }
 
 bool Attack::simulateBattle(Hero &player, Monster &monster) {
@@ -124,12 +159,9 @@ bool Attack::simulateBattle(Hero &player, Monster &monster) {
 
     std::cout << "-------------------" << std::endl;
 
-    // Определяме победителя
     bool playerWon = !player.isDefeated();
 
-    // Показваме съобщение за края на битката
-    if
-    (playerWon) {
+    if (playerWon) {
         displayBattleEndMessage(player, monster);
         rewardExperience(player, monster);
         player.restoreHealthAfterBattle();
@@ -137,8 +169,7 @@ bool Attack::simulateBattle(Hero &player, Monster &monster) {
         displayBattleEndMessage(monster, player);
     }
 
-    return
-            playerWon;
+    return playerWon;
 }
 
 void Attack::rewardExperience(Hero &player, const Monster &monster) {
@@ -148,7 +179,6 @@ void Attack::rewardExperience(Hero &player, const Monster &monster) {
 
     player.addXP(expGained);
 }
-
 
 void Attack::displayBattleStartMessage(const Entity &player, const Entity &monster) {
     std::cout << "\n====== BATTLE START ======" << std::endl;
@@ -169,5 +199,5 @@ void Attack::displayBattleEndMessage(const Entity &winner, const Entity &loser) 
 }
 
 void Attack::displayCriticalHitMessage(double bonusDamage, const Entity &target) {
-    std::cout << "CRITICAL HIT! +" << std::endl;
+    std::cout << "CRITICAL HIT! +" << bonusDamage << " bonus damage!" << std::endl;
 }

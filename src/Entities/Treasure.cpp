@@ -19,3 +19,7 @@ bool Treasure::isCollected() const {
 void Treasure::markAsCollected() {
     this->collected = true;
 }
+
+bool Treasure::operator==(const Treasure &other) const {
+    return this->pos == other.pos;
+}

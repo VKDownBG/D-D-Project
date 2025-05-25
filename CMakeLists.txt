@@ -33,7 +33,12 @@ add_executable(DANDD
         src/Items/Types/Armor.cpp
         src/Items/Types/Weapon.cpp
         src/Items/Types/Spell.cpp
+        #src/UI/managers/UIManager.cpp
+        src/UI/panels/BattlePanel.cpp
+        #src/UI/panels/EquipmentPanel.cpp
+        src/UI/renderers/MapRenderer.cpp
         src/UI/screens/GameHUD.cpp
+        src/UI/screens/MainMenu.cpp
         src/UI/widgets/Button.cpp
         src/UI/widgets/ProgressBar.cpp
         src/UI/test.cpp
@@ -41,10 +46,6 @@ add_executable(DANDD
         src/Utils/Inventory.cpp
         src/Utils/Position.cpp
         src/Utils/ProbabilitySystem.cpp
-        src/UI/screens/MainMenu.cpp
-        include/Entities/Entity.h
-        include/UI/renderers/MapRenderer.h
-        src/UI/renderers/MapRenderer.cpp
 )
 
 # Link libraries

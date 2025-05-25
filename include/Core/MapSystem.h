@@ -22,19 +22,19 @@ public:
 
     char getCell(const Position &pos) const;
 
-    int getWidth() const;
+    size_t getWidth() const;
 
-    int getHeight() const;
+    size_t getHeight() const;
 
     const std::vector<Monster> &getMonsters() const;
 
-    int GetMonsterCount() const;
+    size_t GetMonsterCount() const;
 
     const std::vector<Treasure> &getTreasures() const;
 
     void removeTreasure(const Treasure &treasure);
 
-    int GetTreasureCount() const;
+    size_t GetTreasureCount() const;
 
     int GetCurrentLevel() const;
 

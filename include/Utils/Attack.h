@@ -1,7 +1,3 @@
-//
-// Created by Lenovo on 8.5.2025 г.
-//
-
 #ifndef ATTACK_H
 #define ATTACK_H
 
@@ -18,30 +14,34 @@ class Attack {
 public:
     Attack();
 
-    ~Attack() = default;
+    double performAttack(const Entity &attacker, Entity &defender, AttackType type);
 
-    static double calculateWeaponAttack(const Entity &attacker, const Entity &defender);
+    double performAttackSilent(const Entity &attacker, Entity &defender, AttackType type);
 
-    static double calculateSpellAttack(const Entity &attacker, const Entity &defender);
+    bool simulateBattle(Hero &player, Monster &monster);
 
-    static double performAttack(const Entity &attacker, Entity &defender, AttackType type);
+    void rewardExperience(Hero &player, const Monster &monster);
 
-    static bool isCriticalHit();
+    std::string getAttackName(const Entity &attacker, AttackType type);
 
-    static bool simulateBattle(Hero &player, Monster &monster);
-
-    static void rewardExperience(Hero &player, const Monster &monster);
+    bool checkCriticalHit();
 
 private:
     bool isPlayerTurn;
 
-    static void displayBattleStartMessage(const Entity &player, const Entity &monster);
+    double calculateWeaponAttack(const Entity &attacker, const Entity &defender);
 
-    static void displayTurnMessage(const Entity &entity, bool isPlayerTurn);
+    double calculateSpellAttack(const Entity &attacker, const Entity &defender);
 
-    static void displayBattleEndMessage(const Entity &winner, const Entity &loser);
+    bool isCriticalHit();
 
-    static void displayCriticalHitMessage(double bonusDamage, const Entity &target);
+    void displayBattleStartMessage(const Entity &player, const Entity &monster);
+
+    void displayTurnMessage(const Entity &entity, bool isPlayerTurn);
+
+    void displayBattleEndMessage(const Entity &winner, const Entity &loser);
+
+    void displayCriticalHitMessage(double bonusDamage, const Entity &target);
 };
 
 #endif //ATTACK_H
