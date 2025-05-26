@@ -69,7 +69,7 @@ int Hero::GetMaxHealth() const {
     return maxHealth;
 }
 
-void Hero::SetHealth(int newHealth) {
+void Hero::SetHealth(const int newHealth) {
     health = newHealth;
     if (health < 0) {
         health = 0;
@@ -79,7 +79,7 @@ void Hero::SetHealth(int newHealth) {
     }
 }
 
-void Hero::takeDamage(double damage) {
+void Hero::takeDamage(const double damage) {
     health -= damage;
     if (health < 0) {
         health = 0;
@@ -140,54 +140,14 @@ int Hero::GetXP() const {
     return XP;
 }
 
-void Hero::SetXP(int xp) {
+void Hero::SetXP(const int xp) {
     XP = xp;
 }
 
-//Превод
-void Hero::addXP(int xp) {
+void Hero::addXP(const double xp) {
     XP += xp;
-
-    if (XP >= level * 100) {
-        std::cout << "Достигнахте достатъчно опит за ново ниво!" << std::endl;
-        std::cout << "Имате 30 точки, които да разпределите между характеристиките си." << std::endl;
-
-        int strPoints = 0, mnaPoints = 0, hlthPoints = 0;
-        int remainingPoints = 30;
-
-        // Питаме играча как иска да разпредели точките
-        std::cout << "Въведете брой точки за сила (0-30): ";
-        std::cin >> strPoints;
-
-        while (strPoints < 0 || strPoints > remainingPoints) {
-            std::cout << "Невалиден брой точки. Въведете брой точки за сила (0-" << remainingPoints << "): ";
-            std::cin >> strPoints;
-        }
-
-        remainingPoints -= strPoints;
-
-        if (remainingPoints > 0) {
-            std::cout << "Въведете брой точки за мана (0-" << remainingPoints << "): ";
-            std::cin >> mnaPoints;
-
-            while (mnaPoints < 0 || mnaPoints > remainingPoints) {
-                std::cout << "Невалиден брой точки. Въведете брой точки за мана (0-" << remainingPoints << "): ";
-                std::cin >> mnaPoints;
-            }
-
-            remainingPoints -= mnaPoints;
-        }
-
-        // Оставащите точки отиват за здраве
-        hlthPoints = remainingPoints;
-
-        // Вдигаме нивото с разпределените точки
-        levelUp(strPoints, mnaPoints, hlthPoints);
-
-        // Изваждаме използвания опит
-        XP -= level * 100;
-    }
 }
+
 
 int Hero::GetLevel() const {
     return level;

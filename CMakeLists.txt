@@ -35,7 +35,7 @@ add_executable(DANDD
         src/Items/Types/Spell.cpp
         #src/UI/managers/UIManager.cpp
         src/UI/panels/BattlePanel.cpp
-        #src/UI/panels/EquipmentPanel.cpp
+        src/UI/panels/EquipmentPanel.cpp
         src/UI/renderers/MapRenderer.cpp
         src/UI/screens/GameHUD.cpp
         src/UI/screens/MainMenu.cpp
@@ -46,6 +46,8 @@ add_executable(DANDD
         src/Utils/Inventory.cpp
         src/Utils/Position.cpp
         src/Utils/ProbabilitySystem.cpp
+        include/UI/panels/LevelUpPanel.h
+        src/UI/panels/LevelUpPanel.cpp
 )
 
 # Link libraries

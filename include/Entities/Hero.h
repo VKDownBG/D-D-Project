@@ -61,7 +61,7 @@ public:
 
     void SetXP(int xp);
 
-    void addXP(int xp);
+    void addXP(double xp);
 
     int GetLevel() const;
 

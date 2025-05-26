@@ -5,56 +5,62 @@
 #ifndef BATTLESYSTEM_H
 #define BATTLESYSTEM_H
 
-#include "../Entities/Hero.h"
+#include "C:/DandD/include/Entities/Hero.h"
 #include "C:/DandD/include/Entities/Monster.h";
-#include "C:/DandD/include/Utils/Attack.h";
-
-enum class AttackType {
-    WEAPON,
-    SPELL,
-    FLEE
-};
-
-enum class Starts {
-    HERO,
-    MONSTER
-};
+// #include "C:/DandD/include/Utils/Attack.h";
+#include "C:/DandD/include/UI/panels/BattlePanel.h"
+#include "C:/DandD/include/Core/MapSystem.h"
+#include "C:/DandD/include/Utils/Position.h"
+#include <vector>
+#include <memory>
+#include <functional>
 
 class BattleSystem {
 public:
+    BattleSystem();
+
+    ~BattleSystem();
+
+    void Update();
+
+    void Draw() const;
+
+    bool CheckForBattle(Hero *player, const Position &newPosition, Map *gameMap);
+
     void StartBattle(Hero *player, Monster *monster);
 
-    void EndBattle();
+    bool IsBattleActive() const;
 
-    void ProcessPlayerTurn(AttackType playerChoise);
+    bool IsBattleFinished() const;
 
-    void ProcessMonsterTurn();
+    BattleResult GetBattleResult() const;
 
-    void CalculateDamage(bool isPlayerAtacking);
+    void SetFont(const Font &font);
 
-    bool IsBattleOver();
-
-    bool isPlayerVictorious() const;
-
-    Hero *GetCurrentPlayer() const;
-
-    Monster *GetCurrentEnemy() const;
-
-    int GetTurnNumber() const;
-
-    void OnBattleEnded(bool isVictory);
+    void SetBattleEndCallback(const std::function<void(BattleResult)> &callback);
 
 private:
-    Hero *player;
-    Monster *enemy;
-    int currentTurn;
-    bool isPlayerTurn;
+    void HandleBattleEnd();
 
-    void applyBonusesAndArmor(int &rawDamage, bool isPlayerAtacking);
+    bool determineFirstTurn() const;
 
-    void handleVictory();
+    Monster *GetMonsterAtPosition(const Position &pos, Map *gameMap) const;
 
-    void handleDefeat();
+    BattlePanel *battlePanel;
+    Attack *attackSystem;
+
+    Hero *currentPlayer;
+    Monster *currentMonster;
+    double playerHealthBeforeBattle;
+
+    bool battleActive;
+    bool battleInitialized;
+
+    std::function<void(BattleResult)> onBattleEnd;
+
+    const double HEALTH_RESTORE_PERCENTAGE = 0.5;
+    const int BASE_XP_REWARD = 100;
+    const double LEVEL_XP_MULTIPLIER = 1.5;
 };
 
 #endif //BATTLESYSTEM_H

@@ -28,6 +28,8 @@ public:
 
     const std::vector<Monster> &getMonsters() const;
 
+    std::vector<Monster> &getMonsters();
+
     size_t GetMonsterCount() const;
 
     const std::vector<Treasure> &getTreasures() const;

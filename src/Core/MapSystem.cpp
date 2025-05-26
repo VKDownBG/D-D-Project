@@ -151,6 +151,10 @@ const std::vector<Monster> &Map::getMonsters() const {
     return enemies;
 }
 
+std::vector<Monster> &Map::getMonsters() {
+    return enemies;
+}
+
 size_t Map::GetMonsterCount() const {
     return enemies.size();
 }

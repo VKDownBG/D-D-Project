@@ -7,10 +7,6 @@
 
 #include "raylib.h"
 #include "C:/DandD/include/Items/Item.h"
-#include "C:/DandD/include/Items/Types/Armor.h"
-#include "C:/DandD/include/Items/Types/Weapon.h"
-#include "C:/DandD/include/Items/Types/Spell.h"
-#include "C:/DandD/include/Utils/Inventory.h"
 #include "C:/DandD/include/UI/widgets/Button.h"
 #include "C:/DandD/include/Entities/Hero.h"
 #include <string>
@@ -63,13 +59,13 @@ private:
 
     void OnEquipNewItem();
 
-    std::string GetBonusDifference(double currentBonus, double newBonus);
+    std::string GetBonusDifference(double currentBonus, double newBonus) const;
 
-    std::string GetLevelDifference(int currentLevel, int newLevel);
+    std::string GetLevelDifference(int currentLevel, int newLevel) const;
 
-    Color GetDifferenceColor(double current, double newValue);
+    Color GetDifferenceColor(double current, double newValue) const;
 
-    Color GetLevelDifferenceColor(int currentLevel, int newLevel);
+    Color GetLevelDifferenceColor(int currentLevel, int newLevel) const;
 };
 
-#endif EQUIPMENTPANEL_H
+#endif //EQUIPMENTPANEL_H

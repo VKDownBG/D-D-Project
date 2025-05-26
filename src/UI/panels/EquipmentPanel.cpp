@@ -7,10 +7,10 @@
 #include <iomanip>
 
 EquipmentPanel::EquipmentPanel(Hero *_player)
-    : isVisible(false),
+    : player(_player),
+      isVisible(false),
       currentItem(nullptr),
-      newItem(nullptr),
-      player(_player) {
+      newItem(nullptr) {
 }
 
 void EquipmentPanel::Show(const Item *_currentItem, const Item *_newItem) {
@@ -39,7 +39,6 @@ void EquipmentPanel::ShowComparison(const Item *newTreasure) {
     }
 
     const Inventory &inventory = player->GetInventory();
-
     const Item *currentItem = nullptr;
     std::string typeStr = newTreasure->GetType();
 
@@ -59,21 +58,21 @@ void EquipmentPanel::ShowComparison(const Item *newTreasure) {
 }
 
 void EquipmentPanel::SetupButtons() {
-    int screenWidth = GetScreenWidth();
-    int screenHeight = GetScreenHeight();
+    const int screenWidth = GetScreenWidth();
+    const int screenHeight = GetScreenHeight();
 
-    int totalWidth = PANEL_WIDTH * 2 + PANEL_SPACING;
-    int startX = (screenWidth - totalWidth) / 2;
-    int startY = (screenHeight - PANEL_HEIGHT) / 2;
+    const int totalWidth = PANEL_WIDTH * 2 + PANEL_SPACING;
+    const int startX = (screenWidth - totalWidth) / 2;
+    const int startY = (screenHeight - PANEL_HEIGHT) / 2;
 
-    int leftPanelX = startX;
-    int rightPanelX = startX + PANEL_WIDTH + PANEL_SPACING;
+    const int leftPanelX = startX;
+    const int rightPanelX = startX + PANEL_WIDTH + PANEL_SPACING;
 
-    Rectangle leftButtonRect = {
+    const Rectangle leftButtonRect = {
         static_cast<float>(leftPanelX), static_cast<float>(startY), static_cast<float>(PANEL_WIDTH),
         static_cast<float>(PANEL_HEIGHT)
     };
-    Rectangle rightButtonRect = {
+    const Rectangle rightButtonRect = {
         static_cast<float>(rightPanelX), static_cast<float>(startY), static_cast<float>(PANEL_WIDTH),
         static_cast<float>(PANEL_HEIGHT)
     };
@@ -86,9 +85,9 @@ void EquipmentPanel::SetupButtons() {
         this->OnEquipNewItem();
     });
 
-    Color transparentColor = {0, 0, 0, 0};
-    Color hoverColor = {255, 255, 255, 50};
-    Color pressedColor = {255, 255, 255, 100};
+    const Color transparentColor = {0, 0, 0, 0};
+    const Color hoverColor = {255, 255, 255, 50};
+    const Color pressedColor = {255, 255, 255, 100};
 
     leftButton.SetColors(transparentColor, hoverColor, pressedColor, WHITE);
     leftButton.SetBorder({255, 255, 255, 150}, 2);
@@ -108,7 +107,7 @@ bool EquipmentPanel::IsVisible() const {
 }
 
 void EquipmentPanel::Update() {
-    if (isVisible) return;
+    if (!isVisible) return;
 
     leftButton.Update({0, 0});
     rightButton.Update({0, 0});
@@ -121,15 +120,15 @@ void EquipmentPanel::Update() {
 void EquipmentPanel::Draw() const {
     if (!isVisible) return;
 
-    int screenWidth = GetScreenWidth();
-    int screenHeight = GetScreenHeight();
+    const int screenWidth = GetScreenWidth();
+    const int screenHeight = GetScreenHeight();
 
-    int totalWidth = PANEL_WIDTH * 2 + PANEL_SPACING;
-    int startX = (screenWidth - totalWidth) / 2;
-    int startY = (screenHeight - PANEL_HEIGHT) / 2;
+    const int totalWidth = PANEL_WIDTH * 2 + PANEL_SPACING;
+    const int startX = (screenWidth - totalWidth) / 2;
+    const int startY = (screenHeight - PANEL_HEIGHT) / 2;
 
-    int leftPanelX = startX;
-    int rightPanelX = startX + PANEL_WIDTH + PANEL_SPACING;
+    const int leftPanelX = startX;
+    const int rightPanelX = startX + PANEL_WIDTH + PANEL_SPACING;
 
     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.5f));
 
@@ -139,26 +138,28 @@ void EquipmentPanel::Draw() const {
     DrawPanelContent(leftPanelX, startY, currentItem, false);
     DrawPanelContent(rightPanelX, startY, newItem, true);
 
-    const std::string currentTitle = "Keep Current";
+    const std::string currentTitle = currentItem ? "Keep Current" : "Keep None";
     const std::string newTitle = "Equip New";
 
-    int currentTitleWidth = MeasureText(currentTitle.c_str(), FONT_SIZE);
-    int newTitleWidth = MeasureText(newTitle.c_str(), FONT_SIZE);
+    const int currentTitleWidth = MeasureText(currentTitle.c_str(), FONT_SIZE);
+    const int newTitleWidth = MeasureText(newTitle.c_str(), FONT_SIZE);
 
-    Color leftTitleColor = leftButton.IsHovered() ? YELLOW : WHITE;
-    Color rightTitleColor = rightButton.IsHovered() ? YELLOW : WHITE;
+    const Color leftTitleColor = leftButton.IsHovered() ? YELLOW : WHITE;
+    const Color rightTitleColor = rightButton.IsHovered() ? YELLOW : WHITE;
 
-    DrawText(currentTitle.c_str(), leftPanelX + (PANEL_WIDTH - currentTitleWidth) / 2, startY - 30, FONT_SIZE, WHITE);
-    DrawText(newTitle.c_str(), rightPanelX + (PANEL_WIDTH - newTitleWidth) / 2, startY - 30, FONT_SIZE, WHITE);
+    DrawText(currentTitle.c_str(), leftPanelX + (PANEL_WIDTH - currentTitleWidth) / 2, startY - 30, FONT_SIZE,
+             leftTitleColor);
+    DrawText(newTitle.c_str(), rightPanelX + (PANEL_WIDTH - newTitleWidth) / 2, startY - 30, FONT_SIZE,
+             rightTitleColor);
 
     const std::string instruction = "Click to choose equipment or press ESC to close";
-    int instructionWidth = MeasureText(instruction.c_str(), SMALL_FONT_SIZE);
+    const int instructionWidth = MeasureText(instruction.c_str(), SMALL_FONT_SIZE);
     DrawText(instruction.c_str(), (screenWidth - instructionWidth) / 2, startY + PANEL_HEIGHT + 10, SMALL_FONT_SIZE,
              LIGHTGRAY);
 
     if (leftButton.IsHovered()) {
-        const std::string keepHint = "Keep your current equipment";
-        int hintWidth = MeasureText(keepHint.c_str(), SMALL_FONT_SIZE);
+        const std::string keepHint = currentItem ? "Keep your current equipment" : "Keep no equipment in this slot";
+        const int hintWidth = MeasureText(keepHint.c_str(), SMALL_FONT_SIZE);
         DrawText(keepHint.c_str(), (screenWidth - hintWidth) / 2, startY + PANEL_HEIGHT + 35, SMALL_FONT_SIZE, YELLOW);
     } else if (rightButton.IsHovered()) {
         const std::string equipHint = "Equip the new item";
@@ -173,32 +174,43 @@ void EquipmentPanel::DrawPanelContent(int x, int y, const Item *item, bool showC
         const int textWidth = MeasureText(noEquipText.c_str(), FONT_SIZE);
         DrawText(noEquipText.c_str(), x + (PANEL_WIDTH - textWidth) / 2, y + PANEL_HEIGHT / 2 - 10, FONT_SIZE,
                  DARKGRAY);
+
+        Rectangle iconRect = {
+            static_cast<float>(x + 10), static_cast<float>(y + 10), static_cast<float>(ICON_SIZE),
+            static_cast<float>(ICON_SIZE)
+        };
+        DrawRectangleRec(iconRect, DARKGRAY);
+        DrawRectangleLinesEx(iconRect, 2, GRAY);
+
+        const std::string symbol = "?";
+        const int symbolWidth = MeasureText(symbol.c_str(), 40);
+        DrawText(symbol.c_str(), x + 10 + (ICON_SIZE - symbolWidth) / 2, y + 10 + (ICON_SIZE - 40) / 2, 40, GRAY);
+
         return;
     }
 
     DrawItemIcon(x + 10, y + 10, item);
 
-    const std::string name = item->GetName().c_str();
-    int nameWidth = MeasureText(name.c_str(), FONT_SIZE);
+    std::string name = item->GetName();
+    const int nameWidth = MeasureText(name.c_str(), FONT_SIZE);
     if (nameWidth > PANEL_WIDTH - 20) {
-        const std::string truncatedName = item->GetName().substr(0, 15) + "...";
-        name = truncatedName.c_str();
+        name = item->GetName().substr(0, PANEL_WIDTH - 20) + "...";
     }
     DrawText(name.c_str(), x + 10, y + 85, FONT_SIZE, WHITE);
 
-    std::string typeStr = item->GetType();
+    const std::string typeStr = item->GetType();
     DrawText(typeStr.c_str(), x + 10, y + 110, SMALL_FONT_SIZE, LIGHTGRAY);
 
     DrawItemStats(x + 10, y + 140, item, showComparison);
 }
 
 void EquipmentPanel::DrawItemIcon(int x, int y, const Item *item) const {
-    Rectangle iconRect = {static_cast<float>(x), static_cast<float>(y), static_cast<float>(ICON_SIZE)};
+    const Rectangle iconRect = {static_cast<float>(x), static_cast<float>(y), static_cast<float>(ICON_SIZE)};
 
     Color bgColor;
     std::string symbol;
 
-    std::string typeStr = item->GetType();
+    const std::string typeStr = item->GetType();
     if (typeStr == "ARMOR") {
         bgColor = BLUE;
         symbol = "A";
@@ -225,30 +237,41 @@ void EquipmentPanel::DrawItemStats(int x, int y, const Item *item, bool showComp
     int currentY = y;
 
     std::string levelText = "Level: " + std::to_string(item->GetLevel());
+    Color levelColor = WHITE;
+
     if (showComparison && currentItem) {
         std::string diff = GetLevelDifference(currentItem->GetLevel(), item->GetLevel());
         if (!diff.empty()) {
             levelText += " (" + diff + ")";
+            levelColor = GetLevelDifferenceColor(currentItem->GetLevel(), item->GetLevel());
         }
+    } else if (showComparison && !currentItem) {
+        levelText += " (+" + std::to_string(item->GetLevel()) + ")";
+        levelColor = GREEN;
     }
-    Color levelColor = showComparison && currentItem
-                           ? GetLevelDifferenceColor(currentItem->GetLevel(), item->GetLevel())
-                           : WHITE;
+
+    DrawText(levelText.c_str(), x, currentY, SMALL_FONT_SIZE, levelColor);
     currentY += lineHeight;
 
     std::stringstream ss;
     ss << std::fixed << std::setprecision(1) << item->GetBonus();
     std::string bonusText = "Bonus: " + ss.str() + "%";
+    Color bonusColor = WHITE;
 
     if (showComparison && currentItem) {
         std::string diff = GetBonusDifference(currentItem->GetBonus(), item->GetBonus());
         if (!diff.empty()) {
             bonusText += " (" + diff + ")";
+            bonusColor = GetDifferenceColor(currentItem->GetBonus(), item->GetBonus());
         }
+    } else if (showComparison && !currentItem) {
+        std::stringstream diffStream;
+        diffStream << std::fixed << std::setprecision(1) << item->GetBonus();
+        bonusText += " (+" + diffStream.str() + "%)";
+        bonusColor = GREEN;
     }
-    Color bonusColor = showComparison && currentItem
-                           ? GetDifferenceColor(currentItem->GetBonus(), item->GetBonus())
-                           : WHITE;
+
+    DrawText(bonusText.c_str(), x, currentY, SMALL_FONT_SIZE, bonusColor);
     currentY += lineHeight;
 
     std::string typeStr = item->GetType();
@@ -265,7 +288,7 @@ void EquipmentPanel::DrawItemStats(int x, int y, const Item *item, bool showComp
         currentY += 10;
 
         const int maxWidth = PANEL_WIDTH - 20;
-        std::string line = "";
+        std::string line;
         std::stringstream words(description);
         std::string word;
 
@@ -316,8 +339,8 @@ void EquipmentPanel::OnEquipNewItem() {
     Hide();
 }
 
-std::string EquipmentPanel::GetBonusDifference(double currentBonus, double newBonus) {
-    double difference = newBonus - currentBonus;
+std::string EquipmentPanel::GetBonusDifference(const double currentBonus, const double newBonus) const {
+    const double difference = newBonus - currentBonus;
 
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2);
@@ -333,7 +356,7 @@ std::string EquipmentPanel::GetBonusDifference(double currentBonus, double newBo
     return "";
 }
 
-std::string EquipmentPanel::GetLevelDifference(int currentLevel, int newLevel) {
+std::string EquipmentPanel::GetLevelDifference(int currentLevel, int newLevel) const {
     int difference = newLevel - currentLevel;
 
     if (difference > 0) {
@@ -345,8 +368,8 @@ std::string EquipmentPanel::GetLevelDifference(int currentLevel, int newLevel) {
     return "";
 }
 
-Color EquipmentPanel::GetDifferenceColor(double current, double newValue) {
-    double difference = newValue - current;
+Color EquipmentPanel::GetDifferenceColor(const double current, const double newValue) const {
+    const double difference = newValue - current;
 
     if (difference > 0.05) {
         return GREEN;
@@ -354,11 +377,11 @@ Color EquipmentPanel::GetDifferenceColor(double current, double newValue) {
         return RED;
     }
 
-    return BLACK;
+    return WHITE;
 }
 
-Color EquipmentPanel::GetLevelDifferenceColor(int currentLevel, int newLevel) {
-    int difference = newLevel - currentLevel;
+Color EquipmentPanel::GetLevelDifferenceColor(const int currentLevel, const int newLevel) const {
+    const int difference = newLevel - currentLevel;
 
     if (difference > 0) {
         return GREEN;
@@ -366,5 +389,5 @@ Color EquipmentPanel::GetLevelDifferenceColor(int currentLevel, int newLevel) {
         return RED;
     }
 
-    return BLACK;
+    return WHITE;
 }
