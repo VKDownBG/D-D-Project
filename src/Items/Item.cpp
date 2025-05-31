@@ -32,7 +32,7 @@ void Item::SetLevel(const int level) {
     this->level = level;
 }
 
-std::string Item::GetType() const {
+std::string Item::GetTypeStr() const {
     switch (type) {
         case ItemType::ARMOR:
             return "ARMOR";
@@ -45,4 +45,8 @@ std::string Item::GetType() const {
     };
 
     return "Unknown";
+}
+
+ItemType Item::GetType() const {
+    return type;
 }

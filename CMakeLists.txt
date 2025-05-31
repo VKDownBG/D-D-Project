@@ -23,8 +23,8 @@ include_directories(
 
 # Add executable with all source files
 add_executable(DANDD
-        #src/Core/BattleSystem.cpp
-        #src/Core/GameManager.cpp
+        src/Core/GameManager.cpp
+        src/Core/BattleSystem.cpp
         src/Core/MapSystem.cpp
         src/Entities/Hero.cpp
         src/Entities/Monster.cpp
@@ -33,7 +33,7 @@ add_executable(DANDD
         src/Items/Types/Armor.cpp
         src/Items/Types/Weapon.cpp
         src/Items/Types/Spell.cpp
-        #src/UI/managers/UIManager.cpp
+        src/UI/managers/UIManager.cpp
         src/UI/panels/BattlePanel.cpp
         src/UI/panels/EquipmentPanel.cpp
         src/UI/renderers/MapRenderer.cpp

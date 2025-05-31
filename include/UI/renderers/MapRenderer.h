@@ -13,7 +13,7 @@
 
 class MapRenderer {
 public:
-    MapRenderer(int sw, int sh);
+    MapRenderer(int _screenWidth, int _screenHeight);
 
     ~MapRenderer();
 

@@ -18,8 +18,8 @@ Hero::Hero(const std::string &raceName, std::string heroName)
       strength(0),
       mana(0),
       health(50),
-      level(1),
       maxHealth(50),
+      level(1),
       XP(0),
       inventory(
           Weapon("Basic sword", 20, 1),
@@ -61,15 +61,15 @@ int Hero::GetMana() const {
     return mana;
 }
 
-double Hero::GetHealth() const {
+float Hero::GetHealth() const {
     return health;
 }
 
-int Hero::GetMaxHealth() const {
+float Hero::GetMaxHealth() const {
     return maxHealth;
 }
 
-void Hero::SetHealth(const int newHealth) {
+void Hero::SetHealth(const float newHealth) {
     health = newHealth;
     if (health < 0) {
         health = 0;
@@ -79,7 +79,7 @@ void Hero::SetHealth(const int newHealth) {
     }
 }
 
-void Hero::takeDamage(const double damage) {
+void Hero::takeDamage(const float damage) {
     health -= damage;
     if (health < 0) {
         health = 0;
@@ -121,30 +121,30 @@ Position Hero::getStartingPosition() const {
     return startingPosition;
 }
 
-void Hero::SetStrength(int str) {
+void Hero::SetStrength(const int str) {
     strength = str;
 }
 
-void Hero::SetMana(int mna) {
+void Hero::SetMana(const int mna) {
     mana = mna;
 }
 
-void Hero::SetMaxHealth(int hlth) {
+void Hero::SetMaxHealth(const float hlth) {
     maxHealth = hlth;
     if (health > maxHealth) {
         health = maxHealth;
     }
 }
 
-int Hero::GetXP() const {
+float Hero::GetXP() const {
     return XP;
 }
 
-void Hero::SetXP(const int xp) {
+void Hero::SetXP(const float xp) {
     XP = xp;
 }
 
-void Hero::addXP(const double xp) {
+    void Hero::addXP(const float xp) {
     XP += xp;
 }
 
@@ -174,7 +174,7 @@ Inventory &Hero::GetInventory() {
     return inventory;
 }
 
-void Hero::levelUp(const int str, const int mna, const int hlth) {
+void Hero::levelUp(const int str, const int mna, const float hlth) {
     this->strength += str;
     this->mana += mna;
     this->health += hlth;
@@ -183,7 +183,7 @@ void Hero::levelUp(const int str, const int mna, const int hlth) {
 }
 
 void Hero::restoreHealthAfterBattle() {
-    int halfMaxHealth = maxHealth / 2;
+    float halfMaxHealth = maxHealth / 2;
 
     if (health < halfMaxHealth) {
         health = halfMaxHealth;
@@ -191,24 +191,4 @@ void Hero::restoreHealthAfterBattle() {
     } else {
         std::cout << GetName() << " kept their current health of " << health << "." << std::endl;
     }
-}
-
-int Hero::chooseAttackType() const {
-    int choice;
-
-    std::cout << "Choose attack type:" << std::endl;
-    std::cout << "1. Physical attack with " << (inventory.GetWeapon().GetName()) <<
-            std::endl;
-    std::cout << "2. Magical attack with " << (inventory.GetSpell().GetName()) <<
-            std::endl;
-    std::cout << "Enter choice(1-2): ";
-
-    std::cin >> choice;
-
-    while (choice != 1 && choice != 2) {
-        std::cout << "Invalid choice. Choose again (1-2): ";
-        std::cin >> choice;
-    }
-
-    return choice;
 }

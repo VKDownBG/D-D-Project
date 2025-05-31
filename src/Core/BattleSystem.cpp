@@ -10,6 +10,7 @@
 BattleSystem::BattleSystem()
     : battlePanel(new BattlePanel()),
       attackSystem(new Attack()),
+      gameMap(nullptr),
       currentPlayer(nullptr),
       currentMonster(nullptr),
       playerHealthBeforeBattle(0.0),
@@ -28,6 +29,10 @@ void BattleSystem::Update() {
         return;
     }
 
+    if (!battlePanel) {
+        throw std::runtime_error("BattlePanel is not initialized");
+    }
+
     battlePanel->Update();
 
     if (battlePanel->isFinished()) {
@@ -41,13 +46,12 @@ void BattleSystem::Draw() const {
     }
 }
 
-bool BattleSystem::CheckForBattle(Hero *player, const Position &newPosition, Map *gameMap) {
+bool BattleSystem::CheckForBattle(Hero *player, const Position &newPosition) {
     if (!player || !gameMap || battleActive) {
         return false;
     }
 
-    Monster *monster = GetMonsterAtPosition(newPosition, gameMap);
-
+    Monster *monster = GetMonsterAtPosition(newPosition);
     if (monster && !monster->isDefeated()) {
         StartBattle(player, monster);
         return true;
@@ -56,12 +60,10 @@ bool BattleSystem::CheckForBattle(Hero *player, const Position &newPosition, Map
     return false;
 }
 
-Monster *BattleSystem::GetMonsterAtPosition(const Position &pos, Map *gameMap) const {
-    if (!gameMap) {
-        return nullptr;
-    }
+Monster *BattleSystem::GetMonsterAtPosition(const Position &pos) const {
+    if (!gameMap) return nullptr;
 
-    auto &monsters = gameMap->getMonsters();
+    std::vector<Monster> &monsters = gameMap->getMonsters();
     for (auto &monster: monsters) {
         if (monster.GetPosition().x == pos.x && monster.GetPosition().y == pos.y) {
             return &monster;
@@ -99,13 +101,11 @@ BattleResult BattleSystem::GetBattleResult() const {
 }
 
 void BattleSystem::HandleBattleEnd() {
-    if (!battleActive || !currentPlayer) {
-        return;
-    }
+    if (!battleActive || !currentPlayer) return;
 
     const BattleResult result = battlePanel->GetResult();
 
-    if (result == BattleResult::PLAYER_WON) {
+    if (result == BattleResult::PLAYER_WON && currentPlayer) {
         const double healthToRestore = playerHealthBeforeBattle * HEALTH_RESTORE_PERCENTAGE;
 
         double newHealth = std::min(
@@ -136,6 +136,11 @@ void BattleSystem::SetFont(const Font &font) {
         battlePanel->SetFont(font);
     }
 }
+
+void BattleSystem::SetMap(Map *map) {
+    gameMap = map;
+}
+
 
 void BattleSystem::SetBattleEndCallback(const std::function<void(BattleResult)> &callback) {
     onBattleEnd = callback;

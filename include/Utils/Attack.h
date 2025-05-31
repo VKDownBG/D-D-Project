@@ -16,9 +16,7 @@ public:
 
     double performAttack(const Entity &attacker, Entity &defender, AttackType type);
 
-    double performAttackSilent(const Entity &attacker, Entity &defender, AttackType type);
-
-    bool simulateBattle(Hero &player, Monster &monster);
+    //bool simulateBattle(Hero &player, Monster &monster);
 
     void rewardExperience(Hero &player, const Monster &monster);
 
@@ -27,13 +25,17 @@ public:
     bool checkCriticalHit();
 
 private:
+    const int CRITICAL_HIT_CHANCE = 25;
+
     bool isPlayerTurn;
+
+    double calculateBaseAttack(float baseStat, float bonus, float armorReduction);
 
     double calculateWeaponAttack(const Entity &attacker, const Entity &defender);
 
     double calculateSpellAttack(const Entity &attacker, const Entity &defender);
 
-    bool isCriticalHit();
+    bool isCriticalHit() const;
 
     void displayBattleStartMessage(const Entity &player, const Entity &monster);
 

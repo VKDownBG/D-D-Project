@@ -26,13 +26,15 @@ public:
 
     size_t getHeight() const;
 
-    const std::vector<Monster> &getMonsters() const;
+    const std::vector<Monster> &getMonstersConst() const;
 
     std::vector<Monster> &getMonsters();
 
     size_t GetMonsterCount() const;
 
-    const std::vector<Treasure> &getTreasures() const;
+    const std::vector<Treasure> &getTreasuresConst() const;
+
+    std::vector<Treasure> &getTreasures();
 
     void removeTreasure(const Treasure &treasure);
 

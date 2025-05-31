@@ -12,7 +12,6 @@
 #include "C:/DandD/include/Entities/Monster.h"
 #include <string>
 #include <vector>
-#include <functional>
 
 enum class BattleState {
     HIDDEN,

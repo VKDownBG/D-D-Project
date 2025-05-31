@@ -26,13 +26,13 @@ public:
 
     int GetMana() const override;
 
-    double GetHealth() const override;
+    float GetHealth() const override;
 
-    int GetMaxHealth() const override;
+    float GetMaxHealth() const override;
 
-    void SetHealth(int newHealth) override;
+    void SetHealth(float newHealth) override;
 
-    void takeDamage(double damage) override;
+    void takeDamage(float damage) override;
 
     bool hasArmor() const override;
 
@@ -61,8 +61,8 @@ public:
 private:
     int strength;
     int mana;
-    double health;
-    int maxHealth;
+    float health;
+    float maxHealth;
     int level;
     int scaleArmor;
     Position pos;

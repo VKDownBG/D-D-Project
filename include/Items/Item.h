@@ -27,7 +27,9 @@ public:
 
     void SetLevel(int level);
 
-    std::string GetType() const;
+    std::string GetTypeStr() const;
+
+    ItemType GetType() const;
 
 protected:
     std::string name;

@@ -6,9 +6,9 @@
 #include <cmath>
 #include <iomanip>
 
-GameHUD::GameHUD(const int screenWidth, const int screenHeight)
+GameHUD::GameHUD(const int _screenWidth, const int _screenHeight)
     : hero(nullptr), armorItem(nullptr), weaponItem(nullptr),
-      spellItem(nullptr), screenWidth(screenWidth), screenHeight(screenHeight),
+      spellItem(nullptr), screenWidth(_screenWidth), screenHeight(_screenHeight),
       hpBar(CalculateHPBarBounds(), 50.0f),
       xpBar(CalculateXPBarBounds(), 0.0f),
       inventoryHoverIndex(-1),
@@ -185,7 +185,8 @@ void GameHUD::Update(float deltaTime) {
 void GameHUD::Draw() const {
     if (!hero) return;
 
-    //DrawBackground();
+    if (backgroundLoaded)
+        DrawBackground();
 
     DrawFrame();
     DrawStats();

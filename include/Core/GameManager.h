@@ -5,34 +5,12 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
 
-#include "C:/DandD/include/Core/MapSystem.h"
+#include "C:/DandD/include/UI/managers/UIManager.h"
 #include "C:/DandD/include/Entities/Hero.h"
-#include "C:/DandD/include/Entities/Monster.h"
-#include "C:/DandD/include/Entities/Treasure.h"
-#include "C:/DandD/include/UI/screens/GameHUD.h"
+#include "C:/DandD/include/Core/MapSystem.h"
 #include "C:/DandD/include/Utils/Attack.h"
 #include "C:/DandD/include/Utils/ProbabilitySystem.h"
-#include "C:/DandD/include/UI/renderers/MapRenderer.h"
-#include "C:/DandD/include/UI/screens/MainMenu.h"
-#include <memory>
-#include <vector>
-#include <string>
-
-enum class GameState {
-    MAIN_MENU,
-    PLAYING,
-    BATTLE,
-    LEVEL_COMPLETE,
-    GAME_OVER,
-    PAUSED
-};
-
-enum class MovementDirection {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
-};
+#include <raylib.h>
 
 class GameManager {
 public:
@@ -40,41 +18,38 @@ public:
 
     ~GameManager();
 
-    void Initialize();
-
-    void LoadResources();
-
-    void Update(float deltaTime);
-
-    void Draw();
-
-    void HandleInput();
-
-    bool shouldClose() const;
+    void RunGame();
 
 private:
-    void StartNewGame();
+    void InitializeSystems();
 
-    void LoadGame();
+    void ProcessInput();
 
-    void TransitionToBattle(Monster &monster);
+    void Update(float deltaTime) const;
 
-    void HandleGameOver(bool playerWon);
+    void Render() const;
 
-    void Cleanup();
+    void HandleMovement();
 
-private:
-    GameState currentState;
+    void HandleCombatTrigger();
 
-    MainMenu *mainMenu;
+    void HandleTreasureCollection();
+
+    void LoadCurrentLevel() const;
+
+    void TransitionToNextLevel() const;
+
+    void PositionHeroAtStart() const;
+
+    const int screenWidth;
+    const int screenHeight;
+    bool isRunning;
+
+    UIManager *uiManager;
+    Hero *hero;
     Map *currentMap;
-    Hero *player;
-    GameHUD *gameHUD;
-    MapRenderer *mapRenderer;
-
-    int screenWidth, screenHeight;
-
-    bool resourcesLoaded;
+    Attack *attackSystem;
+    Monster *currentMonster;
 };
 
-#endif //GAMEMANAGER_H
+#endif

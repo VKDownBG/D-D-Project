@@ -10,11 +10,11 @@ class Inventory {
 public:
     Inventory(Weapon w, Spell s);
 
-    bool newWeapon(const Weapon &replacement, bool forceReplace = false);
+    bool newWeapon(const Weapon &replacement);
 
-    bool newArmor(const Armor &replacement, bool forceReplace = false);
+    bool newArmor(const Armor &replacement);
 
-    bool newSpell(const Spell &replacement, bool forceReplace = false);
+    bool newSpell(const Spell &replacement);
 
     const Armor &GetArmor() const;
 

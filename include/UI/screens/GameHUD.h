@@ -15,7 +15,7 @@
 
 class GameHUD {
 public:
-    GameHUD(int screenWidth, int screenHeight);
+    GameHUD(int _screenWidth, int _screenHeight);
 
     ~GameHUD();
 
@@ -102,8 +102,6 @@ private:
     Rectangle CalculateHPBarBounds() const;
 
     Rectangle CalculateXPBarBounds() const;
-
-    //Rectangle CalculateCharacterButtonBounds() const;
 
     Rectangle CalculateArmorButtonBounds() const;
 

@@ -1,223 +1,181 @@
-//
-// Created by Lenovo on 4.5.2025 г..
-//
+#include "C:/DandD/include/Core/GameManager.h"
 
-#include "../../include/Core/GameManager.h"
-
-GameManager::GameManager(int _screenWidth, int _screenHeight)
-    : player(nullptr), currentMap(nullptr), gameHUD(nullptr), battleSystem(nullptr), itemGenerator(nullptr),
-      currentState(GameState::MAIN_MENU),
-      previousState(GameState::MAIN_MENU),
-      currentLevel(1),
-      currentBattleMonster(nullptr),
-      battleInProgress(false),
-      screenWidth(_screenWidth),
-      screenHeight(_screenHeight),
-      monstersDefeated(0),
-      treasuresCollected(0),
-      totalLevelsCompleted(0),
-      currentMapFile(""),
-      currentLevelTag("") {
-    for (int i = 0; i < 4; i++) {
-        keyPressed[i] = false;
-        keyPressTime[i] = 0.0f;
-    }
+GameManager::GameManager(int screenWidth, int screenHeight)
+    : screenWidth(screenWidth), screenHeight(screenHeight),
+      isRunning(false), uiManager(nullptr), hero(nullptr),
+      currentMap(nullptr), attackSystem(nullptr), currentMonster(nullptr) {
+    InitializeSystems();
 }
 
 GameManager::~GameManager() {
-    CleanUp();
-}
-
-void GameManager::Initialize() {
-    CleanUp();
-
-    try {
-        battleSystem = new Attack();
-        itemGenerator = new ItemGenerator();
-
-        gameHUD = new GameHUD(screenWidth, screenHeight);
-        gameHUD->LoadResources();
-
-        LogGameEvent("GameManager initialized successfully!");
-    } catch (const std::exception &e) {
-        delete battleSystem;
-        delete itemGenerator;
-        delete gameHUD;
-        battleSystem = nullptr;
-        itemGenerator = nullptr;
-        gameHUD = nullptr;
-
-        HandleError("Failed to initialize game manager: " + std::string(e.what()));
-    }
-}
-
-void GameManager::Update(float deltaTime) {
-}
-
-void GameManager::Draw() const {
-}
-
-void GameManager::CleanUp() {
-    CleanupLevel();
-
-    if (gameHUD) {
-        gameHUD->Unload();
-        delete gameHUD;
-        gameHUD = nullptr;
-    }
-
-    delete player;
-    player = nullptr;
-
+    delete attackSystem;
     delete currentMap;
-    currentMap = nullptr;
-
-    delete battleSystem;
-    battleSystem = nullptr;
-
-    delete itemGenerator;
-    itemGenerator = nullptr;
-
-    LogGameEvent("GameManager cleaned up successfully!");
+    delete hero;
+    delete uiManager;
 }
 
-void GameManager::SetGameState(GameState state) {
+void GameManager::InitializeSystems() {
+    InitWindow(screenWidth, screenHeight, "Dungeons and Dragons");
+    SetTargetFPS(60);
+
+    hero = new Hero("Human", "Player");
+    currentMap = new Map();
+    attackSystem = new Attack();
+
+    uiManager = new UIManager(screenWidth, screenHeight);
+    uiManager->SetHero(hero);
+    uiManager->SetCurrentMap(currentMap);
+    uiManager->SetAttackSystem(attackSystem);
+    uiManager->LoadResources();
+    uiManager->Initialize();
+
+    uiManager->StartNewGame();
+    PositionHeroAtStart();
 }
 
-GameState GameManager::GetGameState() const {
+void GameManager::RunGame() {
+    isRunning = true;
+
+    while (isRunning && !WindowShouldClose()) {
+        const float deltaTime = GetFrameTime();
+        ProcessInput();
+        Update(deltaTime);
+        Render();
+
+        if (uiManager->ShouldQuit()) {
+            isRunning = false;
+        }
+    }
+    CloseWindow();
 }
 
-void GameManager::CreateHero(const std::string &race, const std::string &heroName) {
+void GameManager::ProcessInput() {
+    switch (uiManager->GetCurrentState()) {
+        case UIState::MAIN_MENU:
+            break;
+
+        case UIState::GAMEPLAY:
+            HandleMovement();
+            HandleCombatTrigger();
+            HandleTreasureCollection();
+            break;
+
+        case UIState::BATTLE:
+            break;
+
+        case UIState::LEVEL_UP:
+        case UIState::EQUIPMENT_SELECTION:
+            break;
+        default: ;
+    }
 }
 
-Hero *GameManager::GetHero() {
+void GameManager::HandleMovement() {
+    if (!hero || !currentMap) return;
+
+    Position newPos = hero->getCurrentPosition();
+    bool moved = false;
+
+    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) {
+        newPos.x++;
+        moved = true;
+    } else if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) {
+        newPos.x--;
+        moved = true;
+    } else if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
+        newPos.y--;
+        moved = true;
+    } else if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
+        newPos.y++;
+        moved = true;
+    }
+
+    if (moved && currentMap->isPassable(newPos.x, newPos.y)) {
+        hero->setPosition(newPos);
+        uiManager->UpdateMapRenderer();
+    }
 }
 
-bool GameManager::LoadLevel(const std::string &mapFilePath, const std::string &levelTag) {
+void GameManager::HandleCombatTrigger() {
+    if (!hero || !currentMap) return;
+
+    Position heroPos = hero->getCurrentPosition();
+    auto &monsters = currentMap->getMonsters();
+
+    for (auto &monster: monsters) {
+        if (!monster.isDefeated()) {
+            Position mPos = monster.GetPosition();
+            int distX = abs(heroPos.x - mPos.x);
+            int distY = abs(heroPos.y - mPos.y);
+
+            if ((distX == 1 && distY == 0) || (distX == 0 && distY == 1)) {
+                currentMonster = &monster;
+                uiManager->StartBattle(hero, currentMonster);
+                return;
+            }
+        }
+    }
 }
 
-bool GameManager::LoadNextLevel() {
+void GameManager::HandleTreasureCollection() {
+    if (!hero || !currentMap || uiManager->GetCurrentState() != UIState::GAMEPLAY)
+        return;
+
+    const Position heroPos = hero->getCurrentPosition();
+    const std::vector<Treasure> &treasures = currentMap->getTreasures();
+    bool collectedAny = false;
+
+    std::vector<Treasure> treasuresCopy = treasures;
+
+    for (const auto &treasure: treasuresCopy) {
+        if (heroPos.x == treasure.getPosition().x &&
+            heroPos.y == treasure.getPosition().y) {
+            currentMap->removeTreasure(treasure);
+            collectedAny = true;
+
+            Item *newItem = ItemGenerator::generateRandomItem(currentMap->GetCurrentLevel());
+            if (newItem) {
+                uiManager->ShowEquipmentChoice(newItem);
+            }
+        }
+    }
+
+    if (collectedAny) {
+        uiManager->UpdateHUDStats();
+    }
 }
 
-bool GameManager::RestartCurrentLevel() {
+void GameManager::Update(const float deltaTime) const {
+    uiManager->Update(deltaTime);
+
+    if (uiManager->IsLevelComplete() &&
+        uiManager->GetCurrentState() == UIState::GAMEPLAY) {
+        TransitionToNextLevel();
+    }
 }
 
-bool GameManager::MoveHero(MovementDirection direction) {
+void GameManager::Render() const {
+    BeginDrawing();
+    ClearBackground(BLACK);
+    uiManager->Draw();
+    EndDrawing();
 }
 
-bool GameManager::IsValidMove(const Position &newPos) {
+void GameManager::PositionHeroAtStart() const {
+    if (!currentMap || !hero) return;
+
+    Position startPos = currentMap->getStartPos();
+    hero->setPosition(startPos);
+    uiManager->UpdateMapRenderer();
 }
 
-void GameManager::HandleMovementInput(float deltatime) {
+void GameManager::LoadCurrentLevel() const {
+    uiManager->LoadLevel(uiManager->GetCurrentLevel());
+    PositionHeroAtStart();
+    uiManager->UpdateHUDStats();
 }
 
-void GameManager::StartBattle(Monster &monster) {
-}
-
-void GameManager::UpdateBattle(float deltatime) {
-}
-
-void GameManager::EndBattle(bool playerWon) {
-}
-
-bool GameManager::IsBattleActive() const {
-}
-
-void GameManager::CheckTreasureCollection() {
-}
-
-void GameManager::HandleTreasureFound(const Treasure &treasure) {
-}
-
-void GameManager::CheckMonsterEncounter() {
-}
-
-void GameManager::CheckLevelComplete() {
-}
-
-void GameManager::CompleteLevelTransition() {
-}
-
-void GameManager::UpdateHUD() {
-}
-
-void GameManager::HandleInput() {
-}
-
-void GameManager::ResetInputState() {
-}
-
-int GameManager::GetMonstersDefeated() const {
-}
-
-int GameManager::GetTreasuresCollected() const {
-}
-
-int GameManager::GetCurrentLevel() const {
-}
-
-int GameManager::GetTotalLevelsCompleted() const {
-}
-
-void GameManager::ResetGame() {
-}
-
-bool GameManager::SaveGameState(const std::string &saveFilePath) {
-}
-
-bool GameManager::LoadGameState(const std::string &saveFilePath) {
-}
-
-void GameManager::SetScreenSize(int width, int height) {
-}
-
-void GameManager::GetScreenSize(int &width, int &height) const {
-}
-
-void GameManager::UpdateGameplay(float deltaTime) {
-}
-
-void GameManager::UpdateMainMenu(float deltaTime) {
-}
-
-void GameManager::UpdateLevelComplete(float deltaTime) {
-}
-
-void GameManager::UpdateGameOver(float deltaTime) {
-}
-
-void GameManager::DrawGameplay() {
-}
-
-void GameManager::DrawMainMenu() {
-}
-
-void GameManager::DrawLevelComplete() {
-}
-
-void GameManager::DrawGameOver() {
-}
-
-void GameManager::InitializeLevel() {
-}
-
-void GameManager::CleanupLevel() {
-}
-
-Position GameManager::CalculateNewPosition(const Position &currentPos, MovementDirection direction) {
-}
-
-void GameManager::HandleHeroMovement(const Position &newPos) {
-}
-
-void GameManager::SpawnHeroAtStart() {
-}
-
-void GameManager::UpdateGameStatistics() {
-}
-
-void GameManager::HandleError(const std::string &errorMessage) {
-}
-
-void GameManager::LogGameEvent(const std::string &event) {
+void GameManager::TransitionToNextLevel() const {
+    uiManager->GenerateNewLevel();
+    LoadCurrentLevel();
 }

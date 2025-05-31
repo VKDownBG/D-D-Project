@@ -6,14 +6,16 @@
 #define BATTLESYSTEM_H
 
 #include "C:/DandD/include/Entities/Hero.h"
-#include "C:/DandD/include/Entities/Monster.h";
-// #include "C:/DandD/include/Utils/Attack.h";
+#include "C:/DandD/include/Entities/Monster.h"
+#include "C:/DandD/include/Utils/Attack.h"
 #include "C:/DandD/include/UI/panels/BattlePanel.h"
 #include "C:/DandD/include/Core/MapSystem.h"
 #include "C:/DandD/include/Utils/Position.h"
-#include <vector>
-#include <memory>
 #include <functional>
+
+const double LEVEL_XP_MULTIPLIER = 1.5;
+const int BASE_XP_REWARD = 100;
+const double HEALTH_RESTORE_PERCENTAGE = 0.5;
 
 class BattleSystem {
 public:
@@ -25,7 +27,7 @@ public:
 
     void Draw() const;
 
-    bool CheckForBattle(Hero *player, const Position &newPosition, Map *gameMap);
+    bool CheckForBattle(Hero *player, const Position &newPosition);
 
     void StartBattle(Hero *player, Monster *monster);
 
@@ -37,6 +39,8 @@ public:
 
     void SetFont(const Font &font);
 
+    void SetMap(Map *map);
+
     void SetBattleEndCallback(const std::function<void(BattleResult)> &callback);
 
 private:
@@ -44,10 +48,11 @@ private:
 
     bool determineFirstTurn() const;
 
-    Monster *GetMonsterAtPosition(const Position &pos, Map *gameMap) const;
+    Monster *GetMonsterAtPosition(const Position &pos) const;
 
     BattlePanel *battlePanel;
     Attack *attackSystem;
+    Map *gameMap;
 
     Hero *currentPlayer;
     Monster *currentMonster;
@@ -57,10 +62,6 @@ private:
     bool battleInitialized;
 
     std::function<void(BattleResult)> onBattleEnd;
-
-    const double HEALTH_RESTORE_PERCENTAGE = 0.5;
-    const int BASE_XP_REWARD = 100;
-    const double LEVEL_XP_MULTIPLIER = 1.5;
 };
 
 #endif //BATTLESYSTEM_H

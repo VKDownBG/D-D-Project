@@ -17,19 +17,15 @@ public:
 
     virtual int GetMana() const = 0;
 
-    virtual double GetHealth() const = 0;
+    virtual float GetHealth() const = 0;
 
-    virtual int GetMaxHealth() const = 0;
+    virtual float GetMaxHealth() const = 0;
 
-    virtual void SetHealth(int newHealth) = 0;
+    virtual void SetHealth(float newHealth) = 0;
 
-    virtual void takeDamage(double damage) = 0;
+    virtual void takeDamage(float damage) = 0;
 
     virtual bool hasArmor() const = 0;
-
-    // virtual bool hasWeapon() const = 0;
-    //
-    // virtual bool hasSpell() const = 0;
 
     virtual float GetWeaponBonus() const = 0;
 

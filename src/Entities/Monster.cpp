@@ -44,15 +44,15 @@ int Monster::GetMana() const {
     return mana;
 }
 
-double Monster::GetHealth() const {
+float Monster::GetHealth() const {
     return health;
 }
 
-int Monster::GetMaxHealth() const {
+float Monster::GetMaxHealth() const {
     return maxHealth;
 }
 
-void Monster::SetHealth(int newHealth) {
+void Monster::SetHealth(const float newHealth) {
     health = newHealth;
 
     if (health < 0)
@@ -62,7 +62,7 @@ void Monster::SetHealth(int newHealth) {
         health = maxHealth;
 }
 
-void Monster::takeDamage(double damage) {
+void Monster::takeDamage(float damage) {
     health -= damage;
 
     if (health < 0)

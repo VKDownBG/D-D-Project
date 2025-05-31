@@ -147,7 +147,7 @@ size_t Map::getHeight() const {
     return height;
 }
 
-const std::vector<Monster> &Map::getMonsters() const {
+const std::vector<Monster> &Map::getMonstersConst() const {
     return enemies;
 }
 
@@ -159,7 +159,11 @@ size_t Map::GetMonsterCount() const {
     return enemies.size();
 }
 
-const std::vector<Treasure> &Map::getTreasures() const {
+const std::vector<Treasure> &Map::getTreasuresConst() const {
+    return treasures;
+}
+
+std::vector<Treasure> &Map::getTreasures() {
     return treasures;
 }
 

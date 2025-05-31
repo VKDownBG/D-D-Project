@@ -6,11 +6,11 @@
 #include <cmath>
 #include <algorithm>
 
-MapRenderer::MapRenderer(int sw, int sh)
+MapRenderer::MapRenderer(const int _screenWidth, const int _screenHeight)
     : map(nullptr),
       heroPosition(nullptr),
-      screenWidth(sw),
-      screenHeight(sh),
+      screenWidth(_screenWidth),
+      screenHeight(_screenHeight),
       cellSize(40.0f),
       resourcesLoaded(false) {
     backgroundColor = {20, 20, 35, 255};
@@ -68,8 +68,8 @@ void MapRenderer::Unload() {
 void MapRenderer::Update(float deltaTime) {
     UpdateCameraPosition();
 
-    int newWidth = GetScreenWidth();
-    int newHeight = GetScreenHeight();
+    const int newWidth = GetScreenWidth();
+    const int newHeight = GetScreenHeight();
 
     if (newWidth != screenWidth || newHeight != screenHeight) {
         screenWidth = newWidth;

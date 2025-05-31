@@ -18,7 +18,7 @@ void EquipmentPanel::Show(const Item *_currentItem, const Item *_newItem) {
     newItem = _newItem;
 
     if (newItem) {
-        std::string typeStr = newItem->GetType();
+        const std::string typeStr = newItem->GetTypeStr();
 
         if (typeStr == "ARMOR") {
             itemType = ItemType::ARMOR;
@@ -40,7 +40,7 @@ void EquipmentPanel::ShowComparison(const Item *newTreasure) {
 
     const Inventory &inventory = player->GetInventory();
     const Item *currentItem = nullptr;
-    std::string typeStr = newTreasure->GetType();
+    std::string typeStr = newTreasure->GetTypeStr();
 
     if (typeStr == "ARMOR") {
         if (inventory.hasArmor())
@@ -198,7 +198,7 @@ void EquipmentPanel::DrawPanelContent(int x, int y, const Item *item, bool showC
     }
     DrawText(name.c_str(), x + 10, y + 85, FONT_SIZE, WHITE);
 
-    const std::string typeStr = item->GetType();
+    const std::string typeStr = item->GetTypeStr();
     DrawText(typeStr.c_str(), x + 10, y + 110, SMALL_FONT_SIZE, LIGHTGRAY);
 
     DrawItemStats(x + 10, y + 140, item, showComparison);
@@ -210,7 +210,7 @@ void EquipmentPanel::DrawItemIcon(int x, int y, const Item *item) const {
     Color bgColor;
     std::string symbol;
 
-    const std::string typeStr = item->GetType();
+    const std::string typeStr = item->GetTypeStr();
     if (typeStr == "ARMOR") {
         bgColor = BLUE;
         symbol = "A";
@@ -274,7 +274,7 @@ void EquipmentPanel::DrawItemStats(int x, int y, const Item *item, bool showComp
     DrawText(bonusText.c_str(), x, currentY, SMALL_FONT_SIZE, bonusColor);
     currentY += lineHeight;
 
-    std::string typeStr = item->GetType();
+    std::string typeStr = item->GetTypeStr();
     std::string description;
     if (typeStr == "WEAPON") {
         description = "Increases attack damage";
@@ -324,16 +324,16 @@ void EquipmentPanel::OnEquipNewItem() {
         return;
     }
 
-    const std::string typeStr = newItem->GetType();
+    const std::string typeStr = newItem->GetTypeStr();
     if (typeStr == "ARMOR") {
         const Armor *armorItem = static_cast<const Armor *>(newItem);
-        player->GetInventory().newArmor(*armorItem, true);
+        player->GetInventory().newArmor(*armorItem);
     } else if (typeStr == "WEAPON") {
         const Weapon *weaponItem = static_cast<const Weapon *>(newItem);
-        player->GetInventory().newWeapon(*weaponItem, true);
+        player->GetInventory().newWeapon(*weaponItem);
     } else if (typeStr == "SPELL") {
         const Spell *spellItem = static_cast<const Spell *>(newItem);
-        player->GetInventory().newSpell(*spellItem, true);
+        player->GetInventory().newSpell(*spellItem);
     }
 
     Hide();

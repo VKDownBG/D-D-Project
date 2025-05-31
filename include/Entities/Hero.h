@@ -23,13 +23,13 @@ public:
 
     int GetMana() const override;
 
-    double GetHealth() const override;
+    float GetHealth() const override;
 
-    int GetMaxHealth() const override;
+    float GetMaxHealth() const override;
 
-    void SetHealth(int newHealth) override;
+    void SetHealth(float newHealth) override;
 
-    void takeDamage(double damage) override;
+    void takeDamage(float damage) override;
 
     bool hasArmor() const override;
 
@@ -55,13 +55,13 @@ public:
 
     void SetMana(int mna);
 
-    void SetMaxHealth(int hlth);
+    void SetMaxHealth(float hlth);
 
-    int GetXP() const;
+    float GetXP() const;
 
-    void SetXP(int xp);
+    void SetXP(float xp);
 
-    void addXP(double xp);
+    void addXP(float xp);
 
     int GetLevel() const;
 
@@ -71,20 +71,18 @@ public:
 
     Inventory &GetInventory();
 
-    void levelUp(int str, int mna, int hlth);
+    void levelUp(int str, int mna, float hlth);
 
     void restoreHealthAfterBattle();
-
-    int chooseAttackType() const;
 
 private:
     Race race;
     int strength;
     int mana;
-    double health;
+    float health;
+    float maxHealth;
     int level;
-    int maxHealth;
-    int XP;
+    float XP;
     Inventory inventory;
     Position startingPosition;
     Position currentPosition;

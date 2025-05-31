@@ -9,84 +9,22 @@
 Attack::Attack() : isPlayerTurn(true) {
 }
 
+double Attack::calculateBaseAttack(float baseStat, float bonus, float armorReduction) {
+    float total = baseStat * (1.0f + bonus / 100);
+
+    return total * (1.0f - armorReduction / 100);
+}
+
 
 double Attack::calculateWeaponAttack(const Entity &attacker, const Entity &defender) {
-    float baseAttack = attacker.GetStrength();
-
-    float weaponBonus = 0.0f;
-    weaponBonus = attacker.GetWeaponBonus();
-
-    const float totalAttack = baseAttack * (1.0f + weaponBonus);
-
-    float armorReduction = 0.0f;
-    if (defender.hasArmor()) {
-        armorReduction = defender.GetArmorReduction();
-    }
-
-    const float finalAttack = totalAttack * (1.0f - armorReduction);
-
-    return finalAttack;
+    return calculateBaseAttack(attacker.GetStrength(), attacker.GetWeaponBonus(), defender.GetArmorReduction());
 }
 
 double Attack::calculateSpellAttack(const Entity &attacker, const Entity &defender) {
-    const float baseAttack = attacker.GetMana();
-
-    float spellBonus = 0.0f;
-    spellBonus = attacker.GetSpellBonus();
-
-    const float totalAttack = baseAttack * (1.0f + spellBonus);
-
-    float armorReduction = 0.0f;
-    if (defender.hasArmor()) {
-        armorReduction = defender.GetArmorReduction();
-    }
-
-    const float finalAttack = totalAttack * (1.0f - armorReduction);
-
-    return finalAttack;
+    return calculateBaseAttack(attacker.GetStrength(), attacker.GetSpellBonus(), defender.GetArmorReduction());
 }
 
-double Attack::performAttack(const Entity &attacker, Entity &defender, const AttackType type) {
-    double damage = 0.0f;
-    const bool criticalHit = isCriticalHit();
-
-    switch (type) {
-        case AttackType::WEAPON:
-            damage = calculateWeaponAttack(attacker, defender);
-            break;
-
-        case AttackType::SPELL:
-            damage = calculateSpellAttack(attacker, defender);
-            break;
-
-        default:
-            std::cout << "Unknown type of attack!" << std::endl;
-            return 0;
-    }
-
-    if (criticalHit) {
-        double bonusDamage = 0;
-        bonusDamage = static_cast<int>(damage * 0.5f);
-        damage += bonusDamage;
-        displayCriticalHitMessage(bonusDamage, defender);
-    }
-
-    if (type == AttackType::WEAPON) {
-        std::cout << attacker.GetName() << " attacks " << defender.GetName()
-                << " with a weapon for " << damage << " damage!" << std::endl;
-    } else {
-        std::cout << attacker.GetName() << " used a spell on " << defender.GetName()
-                << " for " << damage << " damage!" << std::endl;
-    }
-
-    defender.takeDamage(damage);
-
-    std::cout << defender.GetName() << " has " << defender.GetHealth() << " health left." << std::endl;
-
-    return damage;
-}
-
-double Attack::performAttackSilent(const Entity &attacker, Entity &defender, AttackType type) {
+double Attack::performAttack(const Entity &attacker, Entity &defender, AttackType type) {
     double damage = 0.0f;
     const bool criticalHit = isCriticalHit();
 
@@ -113,20 +51,20 @@ double Attack::performAttackSilent(const Entity &attacker, Entity &defender, Att
     return damage;
 }
 
-bool Attack::isCriticalHit() {
+bool Attack::isCriticalHit() const {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(1, 100);
     int roll = dis(gen);
 
-    return (roll <= 25);
+    return (roll <= CRITICAL_HIT_CHANCE);
 }
 
 bool Attack::checkCriticalHit() {
     return isCriticalHit();
 }
 
-std::string Attack::getAttackName(const Entity &attacker, AttackType type) {
+std::string Attack::getAttackName(const Entity &attacker, const AttackType type) {
     if (type == AttackType::WEAPON) {
         return "Claw Attack";
     } else {
@@ -134,43 +72,43 @@ std::string Attack::getAttackName(const Entity &attacker, AttackType type) {
     }
 }
 
-bool Attack::simulateBattle(Hero &player, Monster &monster) {
-    displayBattleStartMessage(player, monster);
-
-    bool isPlayerTurn = true;
-
-    while (!player.isDefeated() && !monster.isDefeated()) {
-        displayTurnMessage(isPlayerTurn ? static_cast<Entity &>(player) : static_cast<Entity &>(monster), isPlayerTurn);
-    }
-
-    if (isPlayerTurn) {
-        int choice = player.chooseAttackType();
-        AttackType playerAttackType = (choice == 1) ? AttackType::WEAPON : AttackType::SPELL;
-        performAttack(player, monster, playerAttackType);
-    } else {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, 1);
-        AttackType monsterAttackType = (dis(gen) == 0) ? AttackType::WEAPON : AttackType::SPELL;
-        performAttack(monster, player, monsterAttackType);
-    }
-
-    isPlayerTurn = !isPlayerTurn;
-
-    std::cout << "-------------------" << std::endl;
-
-    bool playerWon = !player.isDefeated();
-
-    if (playerWon) {
-        displayBattleEndMessage(player, monster);
-        rewardExperience(player, monster);
-        player.restoreHealthAfterBattle();
-    } else {
-        displayBattleEndMessage(monster, player);
-    }
-
-    return playerWon;
-}
+// bool Attack::simulateBattle(Hero &player, Monster &monster) {
+//     displayBattleStartMessage(player, monster);
+//
+//     bool isPlayerTurn = true;
+//
+//     while (!player.isDefeated() && !monster.isDefeated()) {
+//         displayTurnMessage(isPlayerTurn ? static_cast<Entity &>(player) : static_cast<Entity &>(monster), isPlayerTurn);
+//     }
+//
+//     if (isPlayerTurn) {
+//         const int choice = player.chooseAttackType();
+//         const AttackType playerAttackType = (choice == 1) ? AttackType::WEAPON : AttackType::SPELL;
+//         performAttack(player, monster, playerAttackType);
+//     } else {
+//         std::random_device rd;
+//         std::mt19937 gen(rd());
+//         std::uniform_int_distribution<> dis(0, 1);
+//         AttackType monsterAttackType = (dis(gen) == 0) ? AttackType::WEAPON : AttackType::SPELL;
+//         performAttack(monster, player, monsterAttackType);
+//     }
+//
+//     isPlayerTurn = !isPlayerTurn;
+//
+//     std::cout << "-------------------" << std::endl;
+//
+//     const bool playerWon = !player.isDefeated();
+//
+//     if (playerWon) {
+//         displayBattleEndMessage(player, monster);
+//         rewardExperience(player, monster);
+//         player.restoreHealthAfterBattle();
+//     } else {
+//         displayBattleEndMessage(monster, player);
+//     }
+//
+//     return playerWon;
+// }
 
 void Attack::rewardExperience(Hero &player, const Monster &monster) {
     int expGained = static_cast<int>(monster.GetStrength() * 5 + monster.GetLevel() * 20);

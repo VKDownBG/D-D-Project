@@ -78,6 +78,11 @@ BattlePanel::BattlePanel()
 }
 
 void BattlePanel::StartBattle(Hero *_player, Monster *monster, Attack *attackSystem) {
+    if (!_player || !monster) {
+        //LOG_ERROR("Invalid hero or monster in StartBattle(BattlePanel)!");
+        return;
+    }
+
     player = _player;
     currentMonster = monster;
     battleSystem = attackSystem;

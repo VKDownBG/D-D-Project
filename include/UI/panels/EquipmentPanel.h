@@ -30,12 +30,12 @@ public:
     void ShowComparison(const Item *newTreasure);
 
 private:
-    static const int PANEL_WIDTH = 300;
-    static const int PANEL_HEIGHT = 420;
-    static const int PANEL_SPACING = 40;
-    static const int ICON_SIZE = 80;
-    static const int FONT_SIZE = 22;
-    static const int SMALL_FONT_SIZE = 35;
+    const int PANEL_WIDTH = 300;
+    const int PANEL_HEIGHT = 420;
+    const int PANEL_SPACING = 40;
+    const int ICON_SIZE = 80;
+    const int FONT_SIZE = 22;
+    const int SMALL_FONT_SIZE = 35;
 
     Hero *player;
 
