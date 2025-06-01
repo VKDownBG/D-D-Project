@@ -1,35 +1,18 @@
 #include "../../include/Entities/Monster.h"
 
 Monster::Monster(const Position &pos, int curlvl, const MonsterType _type)
-    : strength(25),
-      mana(25),
-      health(50),
-      maxHealth(50),
-      level(curlvl),
-      scaleArmor(15),
-      pos(pos),
-      type(_type) {
-    if (curlvl > 1) {
-        this->health += this->level * 10;
+    : level(curlvl), pos(pos), type(_type) {
+    const int levelBonus = (level - 1) * 10;
 
-        this->mana += this->level * 10;
+    health = BASE_HEALTH + levelBonus;
+    maxHealth = health;
+    strength = BASE_STRENGTH + levelBonus;
+    mana = BASE_MANA + levelBonus;
 
-        this->strength += this->level * 10;
+    scaleArmor = (level < 17) ? 15 + level * 5 : 95;
 
-        this->maxHealth = this->health;
-
-        if (level < 17)
-            this->scaleArmor += this->level * 5;
-        else
-            this->scaleArmor = 95;
-    }
-
-
-    std::stringstream ss;
-
-    ss << "Level " << this->level << " dragon";
-
-    this->name = ss.str();
+    name.reserve(32);
+    name = "Level " + std::to_string(level) + " dragon";
 }
 
 std::string Monster::GetName() const {
@@ -62,7 +45,7 @@ void Monster::SetHealth(const float newHealth) {
         health = maxHealth;
 }
 
-void Monster::takeDamage(float damage) {
+void Monster::takeDamage(const float damage) {
     health -= damage;
 
     if (health < 0)

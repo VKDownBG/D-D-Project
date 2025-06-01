@@ -48,6 +48,8 @@ private:
     CameraView camera{};
     bool resourcesLoaded;
 
+    std::vector<std::pair<int, int> > visibleCells;
+
     Texture2D emptyTileTexture{};
     Texture2D wallTileTexture{};
     Texture2D heroTexture{};

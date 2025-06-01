@@ -30,17 +30,19 @@ void UIManager::Initialize() {
     if (!equipmentPanel) equipmentPanel = new EquipmentPanel(hero);
     if (!mapRenderer) mapRenderer = new MapRenderer(screenWidth, screenHeight);
 
-    mainMenu->Initialize();
+    if (mainMenu) mainMenu->Initialize();
 
-    levelUpPanel->SetOnConfirm([this](int str, int mana, int health) {
-        OnLevelUpConfirm(str, mana, health);
-    });
-    levelUpPanel->SetOnCancel([this]() {
-        OnLevelUpCancel();
-    });
+    if (levelUpPanel) {
+        levelUpPanel->SetOnConfirm([this](const int str, const int mana, const int health) {
+            OnLevelUpConfirm(str, mana, health);
+        });
+        levelUpPanel->SetOnCancel([this]() {
+            OnLevelUpCancel();
+        });
+    }
 }
 
-void UIManager::LoadResources() {
+void UIManager::LoadResources() const {
     if (mainMenu) mainMenu->LoadResources();
     if (gameHUD) gameHUD->LoadResources();
     if (mapRenderer) mapRenderer->LoadResources();
@@ -73,7 +75,7 @@ void UIManager::Unload() {
     equipmentPanel = nullptr;
 }
 
-void UIManager::Update(float deltaTime) {
+void UIManager::Update(const float deltaTime) {
     switch (currentState) {
         case UIState::MAIN_MENU:
             UpdateMainMenu(deltaTime);
@@ -146,7 +148,9 @@ int UIManager::GetCurrentLevel() const {
 
 void UIManager::StartNewGame() {
     currentLevel = 1;
-    LoadLevel(currentLevel);
+    if (currentMap) {
+        LoadLevel(currentLevel);
+    }
     SetState(UIState::GAMEPLAY);
 }
 
@@ -159,20 +163,21 @@ bool UIManager::ShouldQuit() const {
 }
 
 void UIManager::LoadLevel(const int levelNumber) {
-    if (!currentLevel) return;
+    if (!currentMap) return;
 
     try {
-        std::string levelTag = "[LEVEL_" + std::to_string(levelNumber) + "]";
+        const std::string levelTag = "[LEVEL_" + std::to_string(levelNumber) + "]";
         currentMap->loadFromFile(mapFilePath, levelTag);
         currentLevel = levelNumber;
         ResetLevelState();
 
-        if (mapRenderer) {
+        if (mapRenderer && hero) {
             mapRenderer->Initialize(currentMap, hero->GetPosition());
         }
 
         UpdateHUDStats();
     } catch (const std::exception &e) {
+        std::cerr << "Failed to load level: %s" << e.what();
     }
 }
 
@@ -199,8 +204,8 @@ bool UIManager::IsLevelComplete() const {
 void UIManager::CreatePortal() {
     if (portalCreated || !hero || !currentMap) return;
 
-    Position *playerPos = hero->GetPosition();
-    Position portalPos = FindNearestWallPosition(*playerPos);
+    const Position playerPos = hero->getCurrentPosition();
+    const Position portalPos = FindNearestWallPosition(playerPos);
 
     if (portalPos.x != -1 && portalPos.y != -1) {
         portals.emplace_back(portalPos);
@@ -254,6 +259,7 @@ void UIManager::ShowEquipmentChoice(const Item *newItem) {
             break;
         case ItemType::SPELL:
             currentItem = &hero->GetInventory().GetSpell();
+            break;
         default:
             break;
     }
@@ -448,7 +454,11 @@ void UIManager::DrawPortals() const {
 
             const Color portalColor = {100, 200, 255, static_cast<unsigned char>(alpha)};
 
-            const Vector2 screenPos = {portal.position.x * 40.0f, portal.position.y * 40.0f};
+            // Adjust coordinates based on your tile size (assuming 40x40 tiles)
+            const Vector2 screenPos = {
+                static_cast<float>(portal.position.x * 40),
+                static_cast<float>(portal.position.y * 40)
+            };
             DrawCircleV(screenPos, 20.0f * pulseScale, portalColor);
             DrawCircleLinesV(screenPos, 25.0f * pulseScale, {150, 255, 255, 200});
         }
@@ -470,12 +480,13 @@ void UIManager::HandleMainMenuInput() {
 void UIManager::HandlePortalInteraction() {
     if (!hero || portals.empty()) return;
 
-    const Position *heroPos = hero->GetPosition();
+    // FIXED: Use reference instead of pointer
+    const Position heroPos = hero->getCurrentPosition();
 
     for (const auto &portal: portals) {
         if (portal.isActive &&
-            abs(heroPos->x - portal.position.x) <= 1 &&
-            abs(heroPos->y - portal.position.y) <= 1) {
+            abs(heroPos.x - portal.position.x) <= 1 &&
+            abs(heroPos.y - portal.position.y) <= 1) {
             if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
                 isTransitioning = true;
                 SetState(UIState::LEVEL_TRANSITION);
@@ -591,7 +602,7 @@ bool UIManager::IsPositionWall(const Position &pos) const {
     return currentMap->getCell(pos) == '#';
 }
 
-bool UIManager::IsValidPortalPosition(Position pos) const {
+bool UIManager::IsValidPortalPosition(const Position &pos) const {
     if (!currentMap) return false;
 
     if (pos.x < 0 || pos.y < 0 ||
@@ -604,6 +615,8 @@ bool UIManager::IsValidPortalPosition(Position pos) const {
 }
 
 bool UIManager::IsPositionReachable(const Position &from, const Position &to) const {
+    if (!currentMap) return false;
+
     const int dx = abs(to.x - from.x);
     const int dy = abs(to.y - from.y);
     int x = from.x;
@@ -621,7 +634,7 @@ bool UIManager::IsPositionReachable(const Position &from, const Position &to) co
             return false;
         }
 
-        int e2 = 2 * err;
+        const int e2 = 2 * err;
         if (e2 > -dy) {
             err -= dy;
             x += stepX;
@@ -635,7 +648,10 @@ bool UIManager::IsPositionReachable(const Position &from, const Position &to) co
     return true;
 }
 
-void UIManager::OnLevelUpConfirm(int str, int mana, int health) {
+void UIManager::OnLevelUpConfirm(const int str, const int mana, const int health) {
+    if (hero) {
+        hero->levelUp(str, mana, health);
+    }
     HideLevelUpPanel();
 }
 
@@ -664,3 +680,18 @@ void UIManager::OnBattleEnd(BattleResult result) {
         UpdateHUDStats();
     }
 }
+
+//
+// void UIManager::OnBattleEnd(BattleResult result) {
+//     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
+//         auto &monsters = currentMap->getMonsters();
+//         monsters.erase(
+//             std::remove_if(monsters.begin(), monsters.end(),
+//                            [this](const Monster &monster) {
+//                                return &monster == currentBattleMonster;
+//                            }),
+//             monsters.end()
+//         );
+//         UpdateHUDStats();
+//     }
+// }

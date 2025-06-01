@@ -80,8 +80,8 @@ void MapRenderer::Update(float deltaTime) {
 void MapRenderer::UpdateCameraPosition() {
     if (!heroPosition || !map) return;
 
-    float targetX = heroPosition->x - camera.visibleCellsX / 2.0f;
-    float targetY = heroPosition->y - camera.visibleCellsY / 2.0f;
+    const float targetX = heroPosition->x - camera.visibleCellsX / 2.0f;
+    const float targetY = heroPosition->y - camera.visibleCellsY / 2.0f;
 
     const float smoothFactor = 0.15f;
     camera.x = camera.x + (targetX - camera.x) * smoothFactor;
@@ -189,7 +189,10 @@ void MapRenderer::DrawMapGrid() const {
                 );
             } else if (cellType == '.') {
                 DrawTexturePro(emptyTileTexture,
-                               {0, 0, (float) emptyTileTexture.width, (float) emptyTileTexture.height},
+                               {
+                                   0, 0, static_cast<float>(emptyTileTexture.width),
+                                   static_cast<float>(emptyTileTexture.height)
+                               },
                                destRect,
                                {0, 0},
                                0.0f,

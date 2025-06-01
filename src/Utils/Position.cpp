@@ -7,11 +7,19 @@
 Position::Position(int _x, int _y) : x(_x), y(_y) {
 }
 
-Position::Position(const Position &other) {
-    this->x = other.x;
-    this->y = other.y;
+Position::Position(const Position &other) : x(other.x), y(other.y) {
 }
 
+Position::Position(Position &&other) noexcept : x(other.x), y(other.y) {
+}
+
+Position &Position::operator=(const Position &other) {
+    if (this != &other) {
+        this->x = other.x;
+        this->y = other.y;
+    }
+    return *this;
+}
 
 bool Position::operator==(const Position &other) const {
     return this->x == other.x && this->y == other.y;

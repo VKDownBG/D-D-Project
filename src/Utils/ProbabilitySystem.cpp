@@ -4,10 +4,6 @@
 
 #include "C:/DandD/include/Utils/ProbabilitySystem.h"
 
-#include "C:/DandD/include/Items/Types/Armor.h"
-#include "C:/DandD/include/Items/Types/Spell.h"
-#include "C:/DandD/include/Items/Types/Weapon.h"
-
 std::string ItemGenerator::chooseName(const std::vector<std::string> &names) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -16,7 +12,7 @@ std::string ItemGenerator::chooseName(const std::vector<std::string> &names) {
     return names[dist(gen)];
 }
 
-std::string ItemGenerator::getEquipmentType(ItemType type) {
+std::string ItemGenerator::getEquipmentType(const ItemType type) {
     switch (type) {
         case ItemType::WEAPON:
             return "WEAPON";
@@ -38,72 +34,68 @@ ItemType ItemGenerator::generateRandomType() {
     return static_cast<ItemType>(dist(gen));
 }
 
-std::string ItemGenerator::generateRandomName(const std::string &filePath, ItemType type, int level) {
-    std::vector<std::string> names;
+static std::unordered_map<std::string, std::vector<std::string> > nameCache;
 
-    std::string tempItemTypeHolder = getEquipmentType(type);
+std::string ItemGenerator::generateRandomName(const std::string &filePath, const ItemType type, const int level) {
+    const std::string lookingFor = getEquipmentType(type) + "_LEVEL_" + std::to_string(level);
+    if (nameCache.find(lookingFor) == nameCache.end()) {
+        std::vector<std::string> names;
 
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + filePath);
-    }
-
-    std::string line;
-    std::string lookingFor = tempItemTypeHolder + "_LEVEL_" + std::to_string(level);
-    bool readingNames = false;
-
-    while (std::getline(file, line)) {
-        line.erase(0, line.find_first_not_of(" \t\r\n"));
-        line.erase(line.find_last_not_of(" \t\r\n") + 1);
-
-        if (line.empty()) continue;
-
-        if (line[0] == '[' && (line.find(lookingFor) != std::string::npos)) {
-            readingNames = true;
-            continue;
+        std::ifstream file(filePath);
+        if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
         }
 
-        if (readingNames) {
-            if (line[0] == ']') break;
-            names.push_back(line);
+        std::string line;
+        bool readingNames = false;
+
+        while (std::getline(file, line)) {
+            line.erase(0, line.find_first_not_of(" \t\r\n"));
+            line.erase(line.find_last_not_of(" \t\r\n") + 1);
+
+            if (line.empty()) continue;
+
+            if (line[0] == '[' && (line.find(lookingFor) != std::string::npos)) {
+                readingNames = true;
+                continue;
+            }
+
+            if (readingNames) {
+                if (line[0] == ']') break;
+                names.push_back(line);
+            }
         }
+
+        if (!names.empty()) {
+            return chooseName(names);
+        }
+
+        nameCache[lookingFor] = names;
     }
 
-    if (!names.empty()) {
-        return chooseName(names);
-    }
-
-    return "Unknown";
+    return chooseName(nameCache.at(lookingFor));
 }
 
-double ItemGenerator::calculateBonus(ItemType type, int level) {
-    double min = 0, max = 0;
-    switch (type) {
-        case ItemType::WEAPON:
-            min = 20 + 15 * (level - 1);
-            max = 30 + 15 * (level - 1);
-            return RandomUtils::randomValue<double>(min, max);
-
-        case ItemType::ARMOR: {
-            min = 5 + 4 * (level - 1);
-            max = 10 + 4 * (level - 1);
-            return RandomUtils::randomValue<double>(min, max);
-        }
-        case ItemType::SPELL: {
-            min = 20 + 10 * (level - 1);
-            max = 30 + 10 * (level - 1);
-            return RandomUtils::randomValue<double>(min, max);
-        }
-        default: return 0.0;
+double ItemGenerator::calculateBonus(const ItemType type, const int level) {
+    static const std::unordered_map<ItemType, std::pair<double, double> > BONUS_RANGES = {
+        {ItemType::ARMOR, {5.0, 10.0}},
+        {ItemType::WEAPON, {20.0, 30.0}},
+        {ItemType::SPELL, {20.0, 30.0}}
     };
+
+    const auto &range = BONUS_RANGES.at(type);
+    const double min = range.first + (level - 1) * (type == ItemType::ARMOR ? 4 : 15);
+    const double max = range.second + (level - 1) * (type == ItemType::ARMOR ? 4 : 15);
+
+    return RandomUtils::randomValue<double>(min, max);
 }
 
-Item *ItemGenerator::generateRandomItem(int level) {
+Item *ItemGenerator::generateRandomItem(const int level) {
     const ItemType type = generateRandomType();
 
-    std::string name = generateRandomName("C:/DandD/assets/equipment/items.txt", type, level);
+    const std::string name = generateRandomName("C:/DandD/assets/equipment/items.txt", type, level);
 
-    double bonus = calculateBonus(type, level);
+    const double bonus = calculateBonus(type, level);
 
     switch (type) {
         case ItemType::WEAPON: return new Weapon(name, bonus, level);

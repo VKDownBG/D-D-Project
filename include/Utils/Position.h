@@ -14,6 +14,10 @@ struct Position {
 
     Position(const Position &other);
 
+    Position(Position &&other) noexcept;
+
+    Position &operator=(const Position &other);
+
     bool operator==(const Position &other) const;
 
     bool operator!=(const Position &other) const;

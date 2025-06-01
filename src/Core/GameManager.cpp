@@ -28,9 +28,6 @@ void GameManager::InitializeSystems() {
     uiManager->SetAttackSystem(attackSystem);
     uiManager->LoadResources();
     uiManager->Initialize();
-
-    uiManager->StartNewGame();
-    PositionHeroAtStart();
 }
 
 void GameManager::RunGame() {
@@ -52,6 +49,7 @@ void GameManager::RunGame() {
 void GameManager::ProcessInput() {
     switch (uiManager->GetCurrentState()) {
         case UIState::MAIN_MENU:
+            // Main menu input is handled in UIManager
             break;
 
         case UIState::GAMEPLAY:
@@ -61,12 +59,15 @@ void GameManager::ProcessInput() {
             break;
 
         case UIState::BATTLE:
+            // Battle input is handled in BattlePanel
             break;
 
         case UIState::LEVEL_UP:
         case UIState::EQUIPMENT_SELECTION:
+            // UI panels handle their own input
             break;
-        default: ;
+        default:
+            break;
     }
 }
 
@@ -108,7 +109,7 @@ void GameManager::HandleCombatTrigger() {
             int distX = abs(heroPos.x - mPos.x);
             int distY = abs(heroPos.y - mPos.y);
 
-            if ((distX == 1 && distY == 0) || (distX == 0 && distY == 1)) {
+            if (distX <= 1 && distY <= 1 && (distX != 0 || distY != 0)) {
                 currentMonster = &monster;
                 uiManager->StartBattle(hero, currentMonster);
                 return;
@@ -125,7 +126,7 @@ void GameManager::HandleTreasureCollection() {
     const std::vector<Treasure> &treasures = currentMap->getTreasures();
     bool collectedAny = false;
 
-    std::vector<Treasure> treasuresCopy = treasures;
+    const std::vector<Treasure> treasuresCopy = treasures;
 
     for (const auto &treasure: treasuresCopy) {
         if (heroPos.x == treasure.getPosition().x &&
@@ -146,6 +147,8 @@ void GameManager::HandleTreasureCollection() {
 }
 
 void GameManager::Update(const float deltaTime) const {
+    if (!uiManager) return;
+
     uiManager->Update(deltaTime);
 
     if (uiManager->IsLevelComplete() &&
@@ -157,7 +160,11 @@ void GameManager::Update(const float deltaTime) const {
 void GameManager::Render() const {
     BeginDrawing();
     ClearBackground(BLACK);
-    uiManager->Draw();
+
+    if (uiManager) {
+        uiManager->Draw();
+    }
+
     EndDrawing();
 }
 
@@ -166,16 +173,23 @@ void GameManager::PositionHeroAtStart() const {
 
     Position startPos = currentMap->getStartPos();
     hero->setPosition(startPos);
-    uiManager->UpdateMapRenderer();
+
+    if (uiManager) {
+        uiManager->UpdateMapRenderer();
+    }
 }
 
 void GameManager::LoadCurrentLevel() const {
+    if (!uiManager) return;
+
     uiManager->LoadLevel(uiManager->GetCurrentLevel());
     PositionHeroAtStart();
     uiManager->UpdateHUDStats();
 }
 
 void GameManager::TransitionToNextLevel() const {
+    if (!uiManager) return;
+
     uiManager->GenerateNewLevel();
     LoadCurrentLevel();
 }

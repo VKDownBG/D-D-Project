@@ -46,7 +46,7 @@ public:
 
     void Initialize();
 
-    void LoadResources();
+    void LoadResources() const;
 
     void Unload();
 
@@ -189,7 +189,7 @@ private:
 
     Position GetClosestReachableWall(const Position &playerPos) const;
 
-    bool IsValidPortalPosition(Position pos) const;
+    bool IsValidPortalPosition(const Position &pos) const;
 
     void OnLevelUpConfirm(int str, int mana, int health);
 

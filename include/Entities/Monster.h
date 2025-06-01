@@ -10,11 +10,9 @@ enum class MonsterType {
     MONSTER
 };
 
-//
-// enum class attackChosen {
-//     PHYSICAL,
-//     SPELL
-// };
+const int BASE_HEALTH = 50;
+const int BASE_MANA = 25;
+const int BASE_STRENGTH = 25;
 
 class Monster : public Entity {
 public:
@@ -63,8 +61,10 @@ private:
     int mana;
     float health;
     float maxHealth;
+
     int level;
     int scaleArmor;
+
     Position pos;
     std::string name;
     MonsterType type;

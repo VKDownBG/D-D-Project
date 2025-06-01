@@ -33,7 +33,7 @@ public:
 
 protected:
     std::string name;
-    float bonus = 0;
+    double bonus = 0;
     int level = 1;
 
     ItemType type;

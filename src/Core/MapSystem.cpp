@@ -31,7 +31,7 @@ int Map::parseLevelNumber(const std::string &levelTag) {
     return (level == 0) ? 1 : level;
 }
 
-void Map::parseGridLine(const std::string &line, int rowIndex) {
+void Map::parseGridLine(const std::string &line, const int rowIndex) {
     std::vector<char> row;
 
     for (size_t x = 0; x < line.size(); x++) {
@@ -123,7 +123,7 @@ Position Map::getStartPos() const {
     return startPos;
 }
 
-bool Map::isPassable(int x, int y) const {
+bool Map::isPassable(const int x, const int y) const {
     if (x < 0 || y < 0 || x >= width || y >= height) {
         return false;
     }

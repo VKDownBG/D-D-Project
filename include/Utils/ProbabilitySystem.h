@@ -5,18 +5,21 @@
 #ifndef PROBABILITYSYSTEM_H
 #define PROBABILITYSYSTEM_H
 
-#include <algorithm>
-
 #include "C:/DandD/include/Items/Item.h"
+#include "C:/DandD/include/Items/Types/Armor.h"
+#include "C:/DandD/include/Items/Types/Spell.h"
+#include "C:/DandD/include/Items/Types/Weapon.h"
 #include <random>
+#include <algorithm>
 #include <fstream>
+#include <unordered_map>
 
 namespace RandomUtils {
     static std::random_device rd;
     static std::mt19937 gen(rd());
 
     template<typename T>
-    inline T randomValue(T min, T max) {
+    T randomValue(T min, T max) {
         if constexpr (std::is_integral_v<T>) {
             std::uniform_int_distribution<T> dist(min, max);
             return dist(gen);
@@ -36,7 +39,6 @@ private:
 
     static std::string getEquipmentType(ItemType type);
 
-private:
     static ItemType generateRandomType();
 
     static std::string generateRandomName(const std::string &filePath, ItemType type, int level);
