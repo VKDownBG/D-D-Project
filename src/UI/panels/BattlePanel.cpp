@@ -100,20 +100,24 @@ void BattlePanel::StartBattle(Hero *_player, Monster *monster, Attack *attackSys
 void BattlePanel::Update() {
     switch (currentState) {
         case BattleState::ANIMATING_IN:
-            animationProgress += GetFrameTime() * animationSpeed;
-            if (animationProgress >= 1.0f) {
-                animationProgress = 1.0f;
-                currentState = BattleState::ACTIVE;
-            }
-            panelBounds = lerpRectangle(hiddenBounds, targetBounds, easeOutCubic(animationProgress));
-            break;
+        // animationProgress += GetFrameTime() * animationSpeed;
+        // if (animationProgress >= 1.0f) {
+        //     animationProgress = 1.0f;
+        //     currentState = BattleState::ACTIVE;
+        // }
+        // panelBounds = lerpRectangle(hiddenBounds, targetBounds, easeOutCubic(animationProgress));
+        // break;
 
         case BattleState::ANIMATING_OUT:
-            animationProgress -= GetFrameTime() * animationSpeed;
-            if (animationProgress <= 0.0f) {
-                animationProgress = 0.0f;
-                currentState = BattleState::FINISHED;
-            }
+            animationProgress = std::clamp(animationProgress +
+                                           GetFrameTime() * animationSpeed * (currentState == BattleState::ANIMATING_IN
+                                                                                  ? 1
+                                                                                  : -1),
+                                           0.0f, 1.0f);
+
+            if (animationProgress == 1.0f) currentState = BattleState::ACTIVE;
+            if (animationProgress == 0.0f) currentState = BattleState::FINISHED;
+
             panelBounds = lerpRectangle(hiddenBounds, targetBounds, easeOutCubic(animationProgress));
             break;
 
@@ -258,34 +262,34 @@ void BattlePanel::drawBattleLog() const {
 }
 
 void BattlePanel::drawButtons() const {
-    if (player) {
-        const std::string weaponLabel = player->GetInventory().GetWeapon().GetName();
-        const std::string spellLabel = player->GetInventory().GetSpell().GetName();
+    if (!player) return;
 
-        weaponButton.Draw();
-        spellButton.Draw();
-        fleeButton.Draw();
+    const std::string weaponLabel = player->GetInventory().GetWeapon().GetName();
+    const std::string spellLabel = player->GetInventory().GetSpell().GetName();
 
-        Rectangle weaponBounds = weaponButton.GetBounds();
-        Rectangle spellBounds = spellButton.GetBounds();
+    weaponButton.Draw();
+    spellButton.Draw();
+    fleeButton.Draw();
 
-        Vector2 weaponTextSize = MeasureTextEx(uiFont, weaponLabel.c_str(), 14, 1);
-        Vector2 spellTextSize = MeasureTextEx(uiFont, spellLabel.c_str(), 14, 1);
+    Rectangle weaponBounds = weaponButton.GetBounds();
+    Rectangle spellBounds = spellButton.GetBounds();
 
-        DrawTextEx(uiFont, weaponLabel.c_str(),
-                   {
-                       weaponBounds.x + (weaponBounds.width - weaponTextSize.x) / 2,
-                       weaponBounds.y + (weaponBounds.height - weaponTextSize.y) / 2 + 15
-                   },
-                   14, 1, LIGHTGRAY
-        );
+    Vector2 weaponTextSize = MeasureTextEx(uiFont, weaponLabel.c_str(), 14, 1);
+    Vector2 spellTextSize = MeasureTextEx(uiFont, spellLabel.c_str(), 14, 1);
 
-        DrawTextEx(uiFont, spellLabel.c_str(),
-                   {
-                       spellBounds.x + (spellBounds.width - spellTextSize.x) / 2,
-                       spellBounds.y + (spellBounds.height - spellTextSize.y) / 2 + 15
-                   }, 14, 1, LIGHTGRAY);
-    }
+    DrawTextEx(uiFont, weaponLabel.c_str(),
+               {
+                   weaponBounds.x + (weaponBounds.width - weaponTextSize.x) / 2,
+                   weaponBounds.y + (weaponBounds.height - weaponTextSize.y) / 2 + 15
+               },
+               14, 1, LIGHTGRAY
+    );
+
+    DrawTextEx(uiFont, spellLabel.c_str(),
+               {
+                   spellBounds.x + (spellBounds.width - spellTextSize.x) / 2,
+                   spellBounds.y + (spellBounds.height - spellTextSize.y) / 2 + 15
+               }, 14, 1, LIGHTGRAY);
 }
 
 void BattlePanel::onWeaponAttack() {

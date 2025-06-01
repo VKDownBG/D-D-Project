@@ -148,7 +148,7 @@ void ProgressBar::Draw() const {
     const float fillRatio = maxValue > 0.0f ? (displayedValue / maxValue) : 0.0f;
     Color currentFgColor = fgColor;
     if (pulsatingEffect && fillRatio > 0.0f) {
-        float pulse = 1.0f + pulseIntensity * sin(pulseTime);
+        const float pulse = 1.0f + pulseIntensity * sin(pulseTime);
         currentFgColor.r = static_cast<unsigned char>(std::min(255, static_cast<int>(fgColor.r * pulse)));
         currentFgColor.g = static_cast<unsigned char>(std::min(255, static_cast<int>(fgColor.g * pulse)));
         currentFgColor.b = static_cast<unsigned char>(std::min(255, static_cast<int>(fgColor.b * pulse)));
@@ -204,12 +204,16 @@ float ProgressBar::GetValue() const {
     return targetValue;
 }
 
-void ProgressBar::SetMaxValue(float newMaxValue) {
+void ProgressBar::SetMaxValue(const float newMaxValue) {
     if (newMaxValue <= 0.0f) return;
 
-    float ration = newMaxValue / maxValue;
-    targetValue = targetValue * ration;
-    displayedValue = displayedValue * ration;
+    if (maxValue <= 0.0f) {
+        targetValue = displayedValue = newMaxValue;
+    } else {
+        const float ratio = newMaxValue / maxValue;
+        targetValue *= ratio;
+        displayedValue *= ratio;
+    }
     maxValue = newMaxValue;
 }
 

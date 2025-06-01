@@ -49,7 +49,6 @@ void GameManager::RunGame() {
 void GameManager::ProcessInput() {
     switch (uiManager->GetCurrentState()) {
         case UIState::MAIN_MENU:
-            // Main menu input is handled in UIManager
             break;
 
         case UIState::GAMEPLAY:
@@ -59,12 +58,10 @@ void GameManager::ProcessInput() {
             break;
 
         case UIState::BATTLE:
-            // Battle input is handled in BattlePanel
             break;
 
         case UIState::LEVEL_UP:
         case UIState::EQUIPMENT_SELECTION:
-            // UI panels handle their own input
             break;
         default:
             break;
@@ -161,9 +158,7 @@ void GameManager::Render() const {
     BeginDrawing();
     ClearBackground(BLACK);
 
-    if (uiManager) {
-        uiManager->Draw();
-    }
+    uiManager->Draw();
 
     EndDrawing();
 }

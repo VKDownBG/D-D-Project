@@ -3,7 +3,7 @@
 //
 
 #include "C:/DandD/include/UI/panels/EquipmentPanel.h"
-
+#include <cmath>
 #include <iomanip>
 
 EquipmentPanel::EquipmentPanel(Hero *_player)
@@ -18,15 +18,7 @@ void EquipmentPanel::Show(const Item *_currentItem, const Item *_newItem) {
     newItem = _newItem;
 
     if (newItem) {
-        const std::string typeStr = newItem->GetTypeStr();
-
-        if (typeStr == "ARMOR") {
-            itemType = ItemType::ARMOR;
-        } else if (typeStr == "WEAPON") {
-            itemType = ItemType::WEAPON;
-        } else if (typeStr == "SPELL") {
-            itemType = ItemType::SPELL;
-        }
+        itemType = newItem->GetType();
     }
 
     SetupButtons();
@@ -341,19 +333,12 @@ void EquipmentPanel::OnEquipNewItem() {
 
 std::string EquipmentPanel::GetBonusDifference(const double currentBonus, const double newBonus) const {
     const double difference = newBonus - currentBonus;
+    if (fabs(difference) < 0.05) return "";
 
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2);
+    ss << std::fixed << std::setprecision(1) << (difference > 0 ? "+" : "") << std::abs(difference);
 
-    if (difference > 0.05) {
-        ss << "+" << difference;
-        return ss.str();
-    } else if (difference < -0.05) {
-        ss << difference;
-        return ss.str();
-    }
-
-    return "";
+    return ss.str();
 }
 
 std::string EquipmentPanel::GetLevelDifference(int currentLevel, int newLevel) const {

@@ -336,14 +336,14 @@ void UIManager::UpdateMapRenderer() {
     }
 }
 
-void UIManager::UpdateMainMenu(float deltaTime) {
+void UIManager::UpdateMainMenu(const float deltaTime) {
     if (mainMenu) {
         mainMenu->Update(deltaTime);
         HandleMainMenuInput();
     }
 }
 
-void UIManager::UpdateGameplay(float deltaTime) {
+void UIManager::UpdateGameplay(const float deltaTime) {
     if (gameHUD) {
         gameHUD->Update(deltaTime);
     }
@@ -355,7 +355,7 @@ void UIManager::UpdateGameplay(float deltaTime) {
     HandlePortalInteraction();
 }
 
-void UIManager::UpdateBattle(float deltaTime) {
+void UIManager::UpdateBattle(const float deltaTime) {
     if (battlePanel) {
         battlePanel->Update();
 
@@ -377,7 +377,7 @@ void UIManager::UpdateEquipmentSelection(float deltaTime) {
     }
 }
 
-void UIManager::UpdateLevelTransition(float deltaTime) {
+void UIManager::UpdateLevelTransition(const float deltaTime) {
     transitionTimer += deltaTime;
 
     if (transitionTimer >= 2.0f) {
@@ -480,9 +480,7 @@ void UIManager::HandleMainMenuInput() {
 void UIManager::HandlePortalInteraction() {
     if (!hero || portals.empty()) return;
 
-    // FIXED: Use reference instead of pointer
-    const Position heroPos = hero->getCurrentPosition();
-
+    const Position &heroPos = hero->getCurrentPosition();
     for (const auto &portal: portals) {
         if (portal.isActive &&
             abs(heroPos.x - portal.position.x) <= 1 &&
@@ -667,7 +665,7 @@ void UIManager::OnEquipmentEquip() {
     HideEquipmentPanel();
 }
 
-void UIManager::OnBattleEnd(BattleResult result) {
+void UIManager::OnBattleEnd(const BattleResult result) {
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
         auto &monsters = currentMap->getMonsters();
         monsters.erase(
@@ -680,18 +678,3 @@ void UIManager::OnBattleEnd(BattleResult result) {
         UpdateHUDStats();
     }
 }
-
-//
-// void UIManager::OnBattleEnd(BattleResult result) {
-//     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
-//         auto &monsters = currentMap->getMonsters();
-//         monsters.erase(
-//             std::remove_if(monsters.begin(), monsters.end(),
-//                            [this](const Monster &monster) {
-//                                return &monster == currentBattleMonster;
-//                            }),
-//             monsters.end()
-//         );
-//         UpdateHUDStats();
-//     }
-// }

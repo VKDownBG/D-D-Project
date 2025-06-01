@@ -7,9 +7,7 @@
 
 #include "C:/DandD/include/Core/MapSystem.h"
 #include "raylib.h"
-#include <string>
 #include <vector>
-#include <unordered_map>
 
 class MapRenderer {
 public:
@@ -32,51 +30,76 @@ public:
     void SetVisibleRange(int cellsX, int cellsY);
 
 private:
-    struct CameraView {
-        float x;
-        float y;
-        int visibleCellsX;
-        int visibleCellsY;
-        float offsetX;
-        float offsetY;
-    };
-
     Map *map;
     Position *heroPosition;
+
     int screenWidth, screenHeight;
     float cellSize;
-    CameraView camera{};
     bool resourcesLoaded;
 
-    std::vector<std::pair<int, int> > visibleCells;
+    struct Camera {
+        Vector2 position;
+        Vector2 target;
+        int visibleCellsX;
+        int visibleCellsY;
+        float smoothFactor;
 
-    Texture2D emptyTileTexture{};
-    Texture2D wallTileTexture{};
-    Texture2D heroTexture{};
-    Texture2D monsterTexture{};
-    Texture2D bossTexture{};
-    Texture2D treasureTexture{};
+        Camera() : position{0, 0}, target{0, 0},
+                   visibleCellsX{0}, visibleCellsY{0},
+                   smoothFactor{0.05f} {
+        }
+    } camera;
 
-    Font mapFont{};
+    mutable struct VisibleArea {
+        int startX, startY, endX, endY;
+        bool needsUpdate;
+        Vector2 lastCameraPos;
 
-    Color backgroundColor{};
-    Color textColor{};
+        VisibleArea() : startX(0), startY(0), endX(0), endY(0),
+                        needsUpdate(true), lastCameraPos{-1, -1} {
+        }
+    } visibleArea;
 
-    Vector2 GetCellScreenPosition(int x, int y) const;
+    Texture2D floorTexture;
+    Texture2D wallTexture;
+    Texture2D heroTexture;
+    Texture2D monsterTexture;
+    Texture2D bossTexture;
+    Texture2D treasureTexture;
 
-    void UpdateCameraPosition();
+    Font gameFont;
 
-    bool IsCellVisible(int x, int y) const;
+    const Color BACKGROUND_COLOR = {20, 20, 35, 255};
+    const Color BORDER_COLOR = {80, 80, 120, 255};
+    const Color BORDER_GLOW = {100, 100, 180, 150};
 
-    Rectangle GetVisibleMapArea() const;
+    void UpdateCamera();
 
-    void DrawMapGrid() const;
+    void UpdateVisibleArea() const;
+
+    Vector2 WorldToScreen(int worldX, int worldY) const;
+
+    Rectangle GetMapArea() const;
+
+    bool IsInVisibleArea(int x, int y) const;
+
+    void DrawTiles() const;
 
     void DrawEntities() const;
 
     void DrawMapBorder() const;
 
+    void DrawTexturedTile(const Texture2D &texture, const Vector2 &screenPos) const;
+
     void DrawMinimap() const;
+
+    void DrawMinimapBackground(Vector2 pos, float size) const;
+
+    void DrawMinimapTiles(Vector2 pos, float size, float cellSize) const;
+
+    void DrawMinimapEntities(Vector2 pos, float size, float cellSize) const;
+
+    void DrawMinimapViewport(Vector2 pos, float size, float cellSize) const;
 };
 
 #endif //MAPRENDERER_H

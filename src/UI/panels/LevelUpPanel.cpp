@@ -4,11 +4,16 @@
 
 #include "C:/DandD/include/UI/panels/LevelUpPanel.h"
 #include <algorithm>
-#include <sstream>
 
 LevelUpPanel::LevelUpPanel()
     : panelBounds({100, 100, 450, 300}),
       font(GetFontDefault()),
+      panelColor({40, 40, 40, 240}),
+      borderColor(WHITE),
+      textColor(WHITE),
+      inputBgColor({60, 60, 60, 255}),
+      inputActiveColor({80, 80, 120, 255}),
+      isVisible(false),
       strengthPoints(0),
       manaPoints(0),
       healthPoints(0),
@@ -20,12 +25,6 @@ LevelUpPanel::LevelUpPanel()
       strengthInputText("0"),
       manaInputText("0"),
       healthInputText("0"),
-      panelColor({40, 40, 40, 240}),
-      borderColor(WHITE),
-      textColor(WHITE),
-      inputBgColor({60, 60, 60, 255}),
-      inputActiveColor({80, 80, 120, 255}),
-      isVisible(false),
       onConfirm(nullptr),
       onCancel(nullptr),
       heroRef(nullptr) {
@@ -44,11 +43,7 @@ void LevelUpPanel::Update() {
 
     const Vector2 mousePos = GetMousePosition();
 
-    if (totalPointsAllocated == 30) {
-        confirmButton.SetActive(true);
-    } else {
-        confirmButton.SetActive(false);
-    }
+    confirmButton.SetActive(totalPointsAllocated == maxPoints);
     confirmButton.Update(mousePos);
     cancelButton.Update(mousePos);
 
@@ -150,22 +145,30 @@ void LevelUpPanel::UpdateInputField(Rectangle inputBounds, bool &isActive, std::
     }
 }
 
+// void LevelUpPanel::ValidateAndUpdatePoints() {
+//     totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
+//
+//     if (totalPointsAllocated > maxPoints) {
+//         totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
+//
+//         if (totalPointsAllocated > maxPoints) {
+//             strengthPoints = std::min(strengthPoints, maxPoints);
+//             manaPoints = std::min(manaPoints, maxPoints - strengthPoints);
+//             healthPoints = std::min(healthPoints, maxPoints - strengthPoints - manaPoints);
+//
+//             strengthInputText = std::to_string(strengthPoints);
+//             manaInputText = std::to_string(manaPoints);
+//             healthInputText = std::to_string(healthPoints);
+//         }
+//     }
+// }
+
 void LevelUpPanel::ValidateAndUpdatePoints() {
+    strengthPoints = std::min(strengthPoints, maxPoints - manaPoints - healthPoints);
+    manaPoints = std::min(manaPoints, maxPoints - strengthPoints - healthPoints);
+    healthPoints = std::min(healthPoints, maxPoints - strengthPoints - manaPoints);
+
     totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
-
-    if (totalPointsAllocated > maxPoints) {
-        totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
-
-        if (totalPointsAllocated > maxPoints) {
-            strengthPoints = std::min(strengthPoints, maxPoints);
-            manaPoints = std::min(manaPoints, maxPoints - strengthPoints);
-            healthPoints = std::min(healthPoints, maxPoints - strengthPoints - manaPoints);
-
-            strengthInputText = std::to_string(strengthPoints);
-            manaInputText = std::to_string(manaPoints);
-            healthInputText = std::to_string(healthPoints);
-        }
-    }
 }
 
 void LevelUpPanel::DrawInputField(Rectangle bounds, const std::string &text, bool isActive,

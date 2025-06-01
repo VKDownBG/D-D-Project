@@ -3,6 +3,8 @@
 //
 
 #include "C:/DandD/include/UI/widgets/Button.h"
+
+#include <algorithm>
 #include <utility>
 
 Button::Button()
@@ -102,31 +104,22 @@ void Button::EnableHoverAnimation(bool enable, float scale, float speed) {
 void Button::Update(Vector2 mousePosition) {
     if (!isActive) return;
 
-    if (mousePosition.x == 0 && mousePosition.y == 0) {
-        mousePosition = GetMousePosition();
-    }
-
     isHovered = CheckCollisionPointRec(mousePosition, bounds);
 
+    // Handle hover animation
     if (useHoverAnimation) {
-        if (isHovered) {
-            animationProgress += GetFrameTime() * animationSpeed;
-            if (animationProgress > 1.0f) animationProgress = 1.0f;
-        } else {
-            animationProgress -= GetFrameTime() * animationSpeed;
-            if (animationProgress < 0.0f) animationProgress = 0.0f;
-        }
+        animationProgress = std::clamp(animationProgress +
+                                       (isHovered
+                                            ? GetFrameTime() * animationSpeed
+                                            : -GetFrameTime() * animationSpeed),
+                                       0.0f, 1.0f);
     }
 
+    // Handle press
     isPressed = false;
-    if (isHovered) {
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            isPressed = true;
-
-            if (action) {
-                action();
-            }
-        }
+    if (isHovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        isPressed = true;
+        if (action) action();
     }
 }
 

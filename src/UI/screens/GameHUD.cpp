@@ -120,16 +120,6 @@ void GameHUD::LoadResources() {
     weaponIconTexture = LoadTexture("C:/DandD/assets/equipment/testWeapon.png");
     spellIconTexture = LoadTexture("C:/DandD/assets/equipment/testSpell.png");
 
-    const char *bgPath = "assets/background/game_background_2_edited_resized.png";
-    hudTexture = LoadTexture(bgPath);
-
-    if (hudTexture.id == 0) {
-        TraceLog(LOG_WARNING, "Failed to load background texture: %s", bgPath);
-        backgroundLoaded = false;
-    } else {
-        backgroundLoaded = true;
-    }
-
     hpBar.SetFont(hudFont, 21, textColor);
     xpBar.SetFont(hudFont, 21, textColor);
 
@@ -166,7 +156,7 @@ void GameHUD::Update(float deltaTime) {
     xpBar.Update(hero->GetXP(), deltaTime);
     xpBar.SetMaxValue(100);
 
-    Vector2 mousePos = GetMousePosition();
+    const Vector2 mousePos = GetMousePosition();
     inventoryHoverIndex = -1;
 
     if (armorButton.IsActive() && CheckCollisionPointRec(mousePos, armorButton.GetBounds())) {
@@ -242,70 +232,32 @@ void GameHUD::DrawFrame() const {
     DrawLineEx({0, 119}, {static_cast<float>(screenWidth), 119}, 3, ColorAlpha(mysticBlue, 0.3f));
 }
 
+void DrawStatWithGlow(const Font &font, const char *label, const char *value,
+                      const Vector2 position, const Color textColor, const Color valueColor) {
+    DrawTextEx(font, label, position, 24, 1, textColor);
+    DrawTextEx(font, label, {position.x - 1.5f, position.y + 1.5f}, 24, 1,
+               {textColor.r, textColor.g, textColor.b, 100});
+
+    const Vector2 valuePos = {position.x + (label == "Strength:" ? 110 : 67), position.y};
+    DrawTextEx(font, value, {valuePos.x - 1.5f, valuePos.y + 1.5f}, 24, 1,
+               {valueColor.r, valueColor.g, valueColor.b, 100});
+    DrawTextEx(font, value, valuePos, 24, 1, valueColor);
+}
+
 void GameHUD::DrawStats() const {
-    const int fontSize = 23;
+    const Vector2 basePos = {
+        hpBar.GetBounds().x + 7,
+        hpBar.GetBounds().y + hpBar.GetBounds().height + 25
+    };
 
-    //StrengthText + Glow
-    std::string strText = std::to_string(hero->GetStrength());
-    DrawTextEx(hudFont, "Strength:",
-               {
-                   hpBar.GetBounds().x + 3,
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 25
-               },
-               fontSize, 1, textColor);
-    DrawTextEx(hudFont, "Strength:",
-               {
-                   hpBar.GetBounds().x + 1.5f/* -1.5 */,
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 25 + 1.5f
-               },
-               fontSize, 1,
-               {textColor.r, textColor.g, textColor.b, 100});
-    //StrengthValue + Glow
-    DrawTextEx(hudFont, strText.c_str(),
-               {
-                   hpBar.GetBounds().x + 109,
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 26
-               },
-               fontSize, 1,
-               {220, 220, 100, 255});
-    DrawTextEx(hudFont, strText.c_str(),
-               {
-                   hpBar.GetBounds().x + 107.5f /* -1.5 */,
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 26 + 1.5f
-               },
-               fontSize, 1,
-               {220, 220, 100, 100});
+    // Strength
+    DrawStatWithGlow(hudFont, "Strength:", std::to_string(hero->GetStrength()).c_str(),
+                     basePos, textColor, {220, 220, 100, 255});
 
-    //ManaText + Glow
-    std::string manaText = std::to_string(hero->GetMana());
-    DrawTextEx(hudFont, "Mana:",
-               {
-                   hpBar.GetBounds().x + hpBar.GetBounds().width / 2 + 42,
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 25
-               },
-               fontSize, 1,
-               textColor);
-    DrawTextEx(hudFont, "Mana:",
-               {
-                   hpBar.GetBounds().x + hpBar.GetBounds().width / 2 + 40.5f /* -1.5 */,
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 25 + 1.5f
-               },
-               fontSize, 1,
-               {textColor.r, textColor.g, textColor.b, 100});
-    // //ManaValue + Glow
-    DrawTextEx(hudFont, manaText.c_str(),
-               {
-                   hpBar.GetBounds().x + hpBar.GetBounds().width / 2 + 107,
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 26
-               },
-               fontSize, 1,
-               {120, 180, 255, 255});
-    DrawTextEx(hudFont, manaText.c_str(),
-               {
-                   hpBar.GetBounds().x + hpBar.GetBounds().width / 2 + 105.5f, /* -1.5 */
-                   hpBar.GetBounds().y + hpBar.GetBounds().height + 26 + 1.5f
-               }, fontSize, 1,
-               {120, 180, 255, 100});
+    // Mana
+    const Vector2 manaPos = {basePos.x + hpBar.GetBounds().width / 2 + 25, basePos.y};
+    DrawStatWithGlow(hudFont, "Mana:", std::to_string(hero->GetMana()).c_str(),
+                     manaPos, textColor, {120, 180, 255, 255});
 }
 
 void GameHUD::DrawInventory() const {
@@ -471,14 +423,12 @@ Rectangle GameHUD::CalculateXPBarBounds() const {
 }
 
 Rectangle GameHUD::CalculateArmorButtonBounds() const {
-    //Rectangle charBounds = CalculateCharacterButtonBounds();
     const float buttonSize = 60.0f;
-
     const float inventoryAreaX = screenWidth - buttonSize - 20.0f;
 
     return {
         inventoryAreaX,
-        screenWidth / 4.0f,
+        screenHeight / 4.0f,
         buttonSize,
         buttonSize
     };
