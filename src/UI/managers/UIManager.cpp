@@ -150,6 +150,14 @@ void UIManager::StartNewGame() {
     currentLevel = 1;
     if (currentMap) {
         LoadLevel(currentLevel);
+
+        if (hero) {
+            const Position startPos = currentMap->getStartPos();
+            hero->setPosition(startPos);
+        }
+
+        UpdateMapRenderer();
+        UpdateHUDStats();
     }
     SetState(UIState::GAMEPLAY);
 }
@@ -498,6 +506,7 @@ void UIManager::InitializeGameplay() {
     if (gameHUD && hero) {
         gameHUD->Initialize(hero);
     }
+
     UpdateMapRenderer();
     UpdateHUDStats();
 }

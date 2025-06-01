@@ -28,6 +28,8 @@ void GameManager::InitializeSystems() {
     uiManager->SetAttackSystem(attackSystem);
     uiManager->LoadResources();
     uiManager->Initialize();
+
+    LoadCurrentLevel();
 }
 
 void GameManager::RunGame() {
@@ -177,6 +179,7 @@ void GameManager::PositionHeroAtStart() const {
 void GameManager::LoadCurrentLevel() const {
     if (!uiManager) return;
 
+    int levelToLoad = (uiManager->GetCurrentLevel() > 0) ? uiManager->GetCurrentLevel() : 1;
     uiManager->LoadLevel(uiManager->GetCurrentLevel());
     PositionHeroAtStart();
     uiManager->UpdateHUDStats();
