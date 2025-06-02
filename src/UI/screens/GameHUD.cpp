@@ -133,11 +133,11 @@ void GameHUD::LoadResources() {
     spellButton.SetRoundedCorners(cornerRadius);
 }
 
-void GameHUD::Update(float deltaTime) {
+void GameHUD::Update(const float deltaTime) {
     if (!hero) return;
 
-    int newWidth = GetScreenWidth();
-    int newHeight = GetScreenHeight();
+    const int newWidth = GetScreenWidth();
+    const int newHeight = GetScreenHeight();
     if (newWidth != screenWidth || newHeight != screenHeight) {
         screenWidth = newWidth;
         screenHeight = newHeight;
@@ -302,7 +302,7 @@ void GameHUD::DrawLevelInfo() const {
                fontSize + 2, 2,
                {255, 255, 150, 100});
 
-    std::string monstersText = "Current number of monsters: " + std::to_string(monstersRemaining);
+    const std::string monstersText = "Current number of monsters: " + std::to_string(monstersRemaining);
 
     //TextDisplay
     DrawTextEx(hudFont, monstersText.c_str(),
@@ -315,7 +315,7 @@ void GameHUD::DrawLevelInfo() const {
                fontSize, 1,
                {220, 100, 100, 100});
 
-    std::string treasuresText = "Current number of treasures: " + std::to_string(treasuresRemaining);
+    const std::string treasuresText = "Current number of treasures: " + std::to_string(treasuresRemaining);
 
     //TextDisplay
     DrawTextEx(hudFont, treasuresText.c_str(),

@@ -49,6 +49,12 @@ void GameManager::RunGame() {
 }
 
 void GameManager::ProcessInput() {
+    if (uiManager->IsEquipmentPanelVisible() ||
+        uiManager->IsLevelUpPanelVisible() ||
+        uiManager->GetCurrentState() != UIState::GAMEPLAY) {
+        return; // Don't process movement input when UI panels are active
+    }
+
     switch (uiManager->GetCurrentState()) {
         case UIState::MAIN_MENU:
             break;
@@ -99,14 +105,14 @@ void GameManager::HandleMovement() {
 void GameManager::HandleCombatTrigger() {
     if (!hero || !currentMap) return;
 
-    Position heroPos = hero->getCurrentPosition();
+    const Position heroPos = hero->getCurrentPosition();
     auto &monsters = currentMap->getMonsters();
 
     for (auto &monster: monsters) {
         if (!monster.isDefeated()) {
-            Position mPos = monster.GetPosition();
-            int distX = abs(heroPos.x - mPos.x);
-            int distY = abs(heroPos.y - mPos.y);
+            const Position mPos = monster.GetPosition();
+            const int distX = abs(heroPos.x - mPos.x);
+            const int distY = abs(heroPos.y - mPos.y);
 
             if (distX <= 1 && distY <= 1 && (distX != 0 || distY != 0)) {
                 currentMonster = &monster;
@@ -123,7 +129,10 @@ void GameManager::HandleTreasureCollection() {
 
     const Position heroPos = hero->getCurrentPosition();
     const std::vector<Treasure> &treasures = currentMap->getTreasures();
-    bool collectedAny = false;
+
+    if (uiManager->IsEquipmentPanelVisible()) {
+        return;
+    }
 
     const std::vector<Treasure> treasuresCopy = treasures;
 
@@ -131,17 +140,15 @@ void GameManager::HandleTreasureCollection() {
         if (heroPos.x == treasure.getPosition().x &&
             heroPos.y == treasure.getPosition().y) {
             currentMap->removeTreasure(treasure);
-            collectedAny = true;
 
             Item *newItem = ItemGenerator::generateRandomItem(currentMap->GetCurrentLevel());
             if (newItem) {
                 uiManager->ShowEquipmentChoice(newItem);
+                uiManager->UpdateMapRenderer();
+                uiManager->UpdateHUDStats();
+                return;
             }
         }
-    }
-
-    if (collectedAny) {
-        uiManager->UpdateHUDStats();
     }
 }
 
@@ -168,7 +175,7 @@ void GameManager::Render() const {
 void GameManager::PositionHeroAtStart() const {
     if (!currentMap || !hero) return;
 
-    Position startPos = currentMap->getStartPos();
+    const Position startPos = currentMap->getStartPos();
     hero->setPosition(startPos);
 
     if (uiManager) {

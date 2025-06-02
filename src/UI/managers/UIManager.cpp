@@ -250,8 +250,8 @@ BattleResult UIManager::GetBattleResult() const {
 void UIManager::ShowEquipmentChoice(const Item *newItem) {
     if (!equipmentPanel || !hero || !newItem) return;
 
-    if (!equipmentPanel) {
-        equipmentPanel = new EquipmentPanel(hero);
+    if (currentState == UIState::EQUIPMENT_SELECTION) {
+        return;
     }
 
     const Item *currentItem = nullptr;
@@ -280,7 +280,10 @@ void UIManager::HideEquipmentPanel() {
     if (equipmentPanel) {
         equipmentPanel->Hide();
     }
-    SetState(UIState::GAMEPLAY);
+
+    if (currentState == UIState::EQUIPMENT_SELECTION) {
+        SetState(UIState::GAMEPLAY);
+    }
 }
 
 bool UIManager::IsEquipmentPanelVisible() const {
@@ -407,13 +410,13 @@ void UIManager::DrawMainMenu() const {
 }
 
 void UIManager::DrawGameplay() const {
-    DrawRectangle(0, 0, screenWidth, screenHeight, {20, 10, 5, 255});
+    //DrawRectangle(0, 0, screenWidth, screenHeight, {20, 10, 5, 255});
 
-    if (mapRenderer) {
-        mapRenderer->Draw();
-    }
     if (gameHUD) {
         gameHUD->Draw();
+    }
+    if (mapRenderer) {
+        mapRenderer->Draw();
     }
 
     DrawPortals();
@@ -446,7 +449,7 @@ void UIManager::DrawEquipmentSelection() const {
 void UIManager::DrawLevelTransition() const {
     DrawGameplay();
 
-    float alpha = std::sin(transitionTimer * 2.0f) * 127 + 128;
+    const float alpha = std::sin(transitionTimer * 2.0f) * 127 + 128;
     DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, static_cast<unsigned char>(alpha)});
 
     const std::string text = "Level Complete! Preparing next level...";

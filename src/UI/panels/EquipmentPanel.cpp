@@ -122,14 +122,17 @@ void EquipmentPanel::Update() {
     // Handle keyboard input
     if (IsKeyPressed(KEY_ESCAPE)) {
         Hide();
+        return;
     }
 
     // Alternative keyboard controls
     if (IsKeyPressed(KEY_ONE) || IsKeyPressed(KEY_KP_1)) {
         OnKeepCurrentEquipment();
+        return;
     }
     if (IsKeyPressed(KEY_TWO) || IsKeyPressed(KEY_KP_2)) {
         OnEquipNewItem();
+        return;
     }
 }
 
@@ -342,7 +345,7 @@ void EquipmentPanel::DrawItemStats(int x, int y, const Item *item, bool showComp
 }
 
 void EquipmentPanel::OnKeepCurrentEquipment() {
-    Hide();
+    isVisible = false;
 }
 
 void EquipmentPanel::OnEquipNewItem() {
@@ -363,7 +366,7 @@ void EquipmentPanel::OnEquipNewItem() {
         player->GetInventory().newSpell(*spellItem);
     }
 
-    Hide();
+    isVisible = false;
 }
 
 std::string EquipmentPanel::GetBonusDifference(const double currentBonus, const double newBonus) const {

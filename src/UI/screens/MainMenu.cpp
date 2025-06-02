@@ -180,7 +180,6 @@ void MainMenu::Draw() const {
 }
 
 void MainMenu::DrawBackground() const {
-    // CRITICAL FIX: Always draw something, even if texture fails to load
     if (backgroundTexture.id > 0) {
         const Rectangle backgroundRect = {0, 0, static_cast<float>(screenWidth), static_cast<float>(screenHeight)};
         DrawTexturePro(
