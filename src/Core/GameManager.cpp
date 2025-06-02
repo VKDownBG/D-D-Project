@@ -146,11 +146,10 @@ void GameManager::HandleTreasureCollection() {
                 uiManager->ShowEquipmentChoice(newItem);
                 uiManager->UpdateMapRenderer();
                 uiManager->UpdateHUDStats();
+                return;
             }
         }
     }
-
-    uiManager->SetState(UIState::GAMEPLAY);
 }
 
 void GameManager::Update(const float deltaTime) const {
