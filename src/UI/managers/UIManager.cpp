@@ -196,8 +196,8 @@ void UIManager::GenerateNewLevel() {
 void UIManager::CheckLevelCompletion() {
     if (levelComplete || portalCreated) return;
 
-    bool monstersDefeated = AreAllMonstersDefeated();
-    bool bossesDefeated = AreAllBossesDefeated();
+    const bool monstersDefeated = AreAllMonstersDefeated();
+    const bool bossesDefeated = AreAllBossesDefeated();
 
     if (monstersDefeated || bossesDefeated) {
         levelComplete = true;
@@ -511,6 +511,16 @@ void UIManager::InitializeGameplay() {
     if (gameHUD && hero) {
         gameHUD->Initialize(hero);
     }
+
+    Weapon weapon = hero->GetInventory().GetWeapon();
+    gameHUD->SetWeapon(&weapon);
+
+    //if (hero->GetInventory().GetArmor())
+    Armor armor = hero->GetInventory().GetArmor();
+    gameHUD->SetArmor(&armor);
+
+    Spell spell = hero->GetInventory().GetSpell();
+    gameHUD->SetSpell(&spell);
 
     UpdateMapRenderer();
     UpdateHUDStats();

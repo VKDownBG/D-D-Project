@@ -52,7 +52,7 @@ void GameManager::ProcessInput() {
     if (uiManager->IsEquipmentPanelVisible() ||
         uiManager->IsLevelUpPanelVisible() ||
         uiManager->GetCurrentState() != UIState::GAMEPLAY) {
-        return; // Don't process movement input when UI panels are active
+        return;
     }
 
     switch (uiManager->GetCurrentState()) {
@@ -165,7 +165,7 @@ void GameManager::Update(const float deltaTime) const {
 
 void GameManager::Render() const {
     BeginDrawing();
-    ClearBackground(BLACK);
+    // ClearBackground(BLACK);
 
     uiManager->Draw();
 

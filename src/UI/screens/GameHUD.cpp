@@ -66,8 +66,8 @@ GameHUD::GameHUD(const int _screenWidth, const int _screenHeight)
     xpBar.SetRounding(0.2f);
     xpBar.ShowText(true);
     xpBar.SetTextPrefix("XP: ");
-    xpBar.SetTextFormat([](float current, float max) {
-        int percentage = static_cast<int>((current / max) * 100.0f);
+    xpBar.SetTextFormat([](const float current, const float max) {
+        const int percentage = static_cast<int>((current / max) * 100.0f);
         return std::to_string(percentage) + "%";
     });
     xpBar.EnablePulsatingEffect(true, 0.1f, 0.6f);
@@ -174,6 +174,8 @@ void GameHUD::Update(const float deltaTime) {
 
 void GameHUD::Draw() const {
     if (!hero) return;
+
+    ClearBackground(darkPurple);
 
     if (backgroundLoaded)
         DrawBackground();
