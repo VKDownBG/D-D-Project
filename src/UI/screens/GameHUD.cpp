@@ -85,17 +85,17 @@ void GameHUD::Initialize(Hero *heroRef) {
     spellButton.SetActive(spellItem != nullptr);
 }
 
-void GameHUD::SetArmor(Armor *armor) {
+void GameHUD::SetArmor(const Armor *armor) {
     armorItem = armor;
     armorButton.SetActive(armorItem != nullptr);
 }
 
-void GameHUD::SetWeapon(Weapon *weapon) {
+void GameHUD::SetWeapon(const Weapon *weapon) {
     weaponItem = weapon;
     weaponButton.SetActive(weaponItem != nullptr);
 }
 
-void GameHUD::SetSpell(Spell *spell) {
+void GameHUD::SetSpell(const Spell *spell) {
     spellItem = spell;
     spellButton.SetActive(spellItem != nullptr);
 }

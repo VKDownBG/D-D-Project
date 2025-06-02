@@ -21,11 +21,11 @@ public:
 
     void Initialize(Hero *heroRef);
 
-    void SetArmor(Armor *armor);
+    void SetArmor(const Armor *armor);
 
-    void SetWeapon(Weapon *weapon);
+    void SetWeapon(const Weapon *weapon);
 
-    void SetSpell(Spell *spell);
+    void SetSpell(const Spell *spell);
 
     void SetLevel(int level);
 
@@ -43,9 +43,9 @@ public:
 
 private:
     Hero *hero;
-    Armor *armorItem;
-    Weapon *weaponItem;
-    Spell *spellItem;
+    const Armor *armorItem;
+    const Weapon *weaponItem;
+    const Spell *spellItem;
 
     int screenWidth, screenHeight;
 
