@@ -128,7 +128,7 @@ bool Map::isPassable(const int x, const int y) const {
         return false;
     }
 
-    return grid[y][x] == '.';
+    return grid[y][x] != '#';
 }
 
 char Map::getCell(const Position &pos) const {
@@ -136,7 +136,7 @@ char Map::getCell(const Position &pos) const {
         return '#';
     }
 
-    return grid[pos.x][pos.y];
+    return grid[pos.y][pos.x];
 }
 
 size_t Map::getWidth() const {

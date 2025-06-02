@@ -26,8 +26,8 @@ void GameManager::InitializeSystems() {
     uiManager->SetHero(hero);
     uiManager->SetCurrentMap(currentMap);
     uiManager->SetAttackSystem(attackSystem);
-    uiManager->LoadResources();
     uiManager->Initialize();
+    uiManager->LoadResources();
 
     LoadCurrentLevel();
 }

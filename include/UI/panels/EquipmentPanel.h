@@ -47,11 +47,15 @@ private:
     Button leftButton;
     Button rightButton;
 
+    Color panelBackgroundColor;
+
     void DrawItemIcon(int x, int y, const Item *item) const;
 
     void DrawItemStats(int x, int y, const Item *item, bool showComparison = false) const;
 
     void SetupButtons();
+
+    void SetPanelBackgroundColor(Color color);
 
     void DrawPanelContent(int x, int y, const Item *item, bool showComparison) const;
 

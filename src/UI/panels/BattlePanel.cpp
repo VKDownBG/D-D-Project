@@ -78,10 +78,7 @@ BattlePanel::BattlePanel()
 }
 
 void BattlePanel::StartBattle(Hero *_player, Monster *monster, Attack *attackSystem) {
-    if (!_player || !monster) {
-        //LOG_ERROR("Invalid hero or monster in StartBattle(BattlePanel)!");
-        return;
-    }
+    if (!_player || !monster) return;
 
     player = _player;
     currentMonster = monster;
@@ -100,13 +97,6 @@ void BattlePanel::StartBattle(Hero *_player, Monster *monster, Attack *attackSys
 void BattlePanel::Update() {
     switch (currentState) {
         case BattleState::ANIMATING_IN:
-        // animationProgress += GetFrameTime() * animationSpeed;
-        // if (animationProgress >= 1.0f) {
-        //     animationProgress = 1.0f;
-        //     currentState = BattleState::ACTIVE;
-        // }
-        // panelBounds = lerpRectangle(hiddenBounds, targetBounds, easeOutCubic(animationProgress));
-        // break;
 
         case BattleState::ANIMATING_OUT:
             animationProgress = std::clamp(animationProgress +
@@ -129,9 +119,9 @@ void BattlePanel::Update() {
                     EndBattle(BattleResult::PLAYER_WON);
                 } else if (isPlayerTurn) {
                     if (waitingForInput) {
-                        weaponButton.Update({0, 0});
-                        spellButton.Update({0, 0});
-                        fleeButton.Update({0, 0});
+                        weaponButton.Update(GetMousePosition());
+                        spellButton.Update(GetMousePosition());
+                        fleeButton.Update(GetMousePosition());
                     } else {
                         isPlayerTurn = false;
                     }
@@ -271,11 +261,11 @@ void BattlePanel::drawButtons() const {
     spellButton.Draw();
     fleeButton.Draw();
 
-    Rectangle weaponBounds = weaponButton.GetBounds();
-    Rectangle spellBounds = spellButton.GetBounds();
+    const Rectangle weaponBounds = weaponButton.GetBounds();
+    const Rectangle spellBounds = spellButton.GetBounds();
 
-    Vector2 weaponTextSize = MeasureTextEx(uiFont, weaponLabel.c_str(), 14, 1);
-    Vector2 spellTextSize = MeasureTextEx(uiFont, spellLabel.c_str(), 14, 1);
+    const Vector2 weaponTextSize = MeasureTextEx(uiFont, weaponLabel.c_str(), 14, 1);
+    const Vector2 spellTextSize = MeasureTextEx(uiFont, spellLabel.c_str(), 14, 1);
 
     DrawTextEx(uiFont, weaponLabel.c_str(),
                {

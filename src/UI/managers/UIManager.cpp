@@ -261,12 +261,16 @@ void UIManager::ShowEquipmentChoice(const Item *newItem) {
             if (hero->hasArmor()) {
                 currentItem = &hero->GetInventory().GetArmor();
             }
+
+            DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, 127});
             break;
         case ItemType::WEAPON:
             currentItem = &hero->GetInventory().GetWeapon();
+            DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, 127});
             break;
         case ItemType::SPELL:
             currentItem = &hero->GetInventory().GetSpell();
+            DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, 127});
             break;
         default:
             break;
@@ -392,7 +396,7 @@ void UIManager::UpdateLevelTransition(const float deltaTime) {
         currentLevel++;
         LoadLevel(currentLevel);
 
-        int levelUpPoints = 30;
+        const int levelUpPoints = 30;
         ShowLevelUpPanel(levelUpPoints);
 
         transitionTimer = 0.0f;
@@ -407,6 +411,8 @@ void UIManager::DrawMainMenu() const {
 }
 
 void UIManager::DrawGameplay() const {
+    DrawRectangle(0, 0, screenWidth, screenHeight, {20, 10, 5, 255});
+
     if (mapRenderer) {
         mapRenderer->Draw();
     }

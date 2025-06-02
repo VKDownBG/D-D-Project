@@ -1,5 +1,5 @@
 //
-// Created by Lenovo on 21.5.2025 г..
+// Created by Lenovo on 21.5.2025 г.
 //
 
 #include "C:/DandD/include/UI/renderers/MapRenderer.h"
@@ -64,8 +64,8 @@ void MapRenderer::Unload() {
 }
 
 void MapRenderer::Update(float deltaTime) {
-    int newWidth = GetScreenWidth();
-    int newHeight = GetScreenHeight();
+    const int newWidth = GetScreenWidth();
+    const int newHeight = GetScreenHeight();
 
     if (newWidth != screenWidth || newHeight != screenHeight) {
         screenWidth = newWidth;
@@ -91,8 +91,8 @@ void MapRenderer::UpdateCamera() {
     camera.position.x += diff.x * camera.smoothFactor;
     camera.position.y += diff.y * camera.smoothFactor;
 
-    float maxX = static_cast<float>(map->getWidth()) - camera.visibleCellsX;
-    float maxY = static_cast<float>(map->getHeight()) - camera.visibleCellsY;
+    const float maxX = static_cast<float>(map->getWidth()) - camera.visibleCellsX;
+    const float maxY = static_cast<float>(map->getHeight()) - camera.visibleCellsY;
 
     camera.position.x = std::clamp(camera.position.x, 0.0f, std::max(0.0f, maxX));
     camera.position.y = std::clamp(camera.position.y, 0.0f, std::max(0.0f, maxY));
@@ -110,8 +110,8 @@ void MapRenderer::UpdateCamera() {
 void MapRenderer::UpdateVisibleArea() const {
     if (!visibleArea.needsUpdate) return;
 
-    int cameraX = static_cast<int>(std::floor(camera.position.x));
-    int cameraY = static_cast<int>(std::floor(camera.position.y));
+    const int cameraX = static_cast<int>(std::floor(camera.position.x));
+    const int cameraY = static_cast<int>(std::floor(camera.position.y));
 
     visibleArea.startX = std::max(0, cameraX - 1);
     visibleArea.startY = std::max(0, cameraY - 1);
@@ -142,7 +142,7 @@ Rectangle MapRenderer::GetMapArea() const {
     return {mapX, mapY, mapWidth, mapHeight};
 }
 
-bool MapRenderer::IsInVisibleArea(int x, int y) const {
+bool MapRenderer::IsInVisibleArea(const int x, const int y) const {
     UpdateVisibleArea();
     return x >= visibleArea.startX && x < visibleArea.endX &&
            y >= visibleArea.startY && y < visibleArea.endY;
@@ -187,12 +187,15 @@ void MapRenderer::DrawTexturedTile(const Texture2D &texture, const Vector2 &scre
 
 void MapRenderer::DrawTiles() const {
     if (!map) return;
+
     UpdateVisibleArea();
 
     for (int y = visibleArea.startY; y < visibleArea.endY; y++) {
         for (int x = visibleArea.startX; x < visibleArea.endX; x++) {
             const char cellType = map->getCell({x, y});
             Vector2 screenPos = WorldToScreen(x, y);
+
+            //screenPos.y = GetMapArea().y + GetMapArea().height - screenPos.y - cellSize;
 
             switch (cellType) {
                 case '#': DrawTexturedTile(wallTexture, screenPos);
@@ -216,8 +219,10 @@ void MapRenderer::DrawEntities() const {
     // Draw treasures
     for (const auto &treasure: map->getTreasures()) {
         if (IsInVisibleArea(treasure.getPosition().x, treasure.getPosition().y)) {
-            const Vector2 screenPos = WorldToScreen(treasure.getPosition().x, treasure.getPosition().y);
+            Vector2 screenPos = WorldToScreen(treasure.getPosition().x, treasure.getPosition().y);
             const Rectangle destRect = {screenPos.x, screenPos.y, cellSize, cellSize};
+
+            screenPos.y = GetMapArea().y + GetMapArea().height - screenPos.y - cellSize;
 
             if (treasureTexture.id != 0) {
                 DrawTexturePro(
@@ -250,7 +255,7 @@ void MapRenderer::DrawEntities() const {
     // Draw hero (always on top)
     if (IsInVisibleArea(heroPosition->x, heroPosition->y)) {
         Vector2 screenPos = WorldToScreen(heroPosition->x, heroPosition->y);
-        Rectangle destRect = {screenPos.x, screenPos.y, cellSize, cellSize};
+        const Rectangle destRect = {screenPos.x, screenPos.y, cellSize, cellSize};
 
         if (heroTexture.id != 0) {
             DrawTexturePro(
@@ -284,13 +289,13 @@ void MapRenderer::DrawMinimap() const {
     DrawMinimapViewport(minimapPos, MINIMAP_SIZE, cellSize);
 }
 
-void MapRenderer::DrawMinimapBackground(Vector2 pos, float size) const {
+void MapRenderer::DrawMinimapBackground(const Vector2 pos, const float size) const {
     DrawRectangle(pos.x, pos.y, size, size, {30, 30, 50, 200});
 
     DrawRectangleLinesEx({pos.x, pos.y, size, size}, 2, {100, 100, 150, 200});
 }
 
-void MapRenderer::DrawMinimapTiles(Vector2 pos, float size, float cellSize) const {
+void MapRenderer::DrawMinimapTiles(const Vector2 pos, float size, const float cellSize) const {
     const Vector2 offset = {pos.x + 2, pos.y + 2};
 
     for (int y = 0; y < static_cast<int>(map->getHeight()); y++) {
@@ -300,7 +305,7 @@ void MapRenderer::DrawMinimapTiles(Vector2 pos, float size, float cellSize) cons
             const float cellX = offset.x + x * cellSize;
             const float cellY = offset.y + y * cellSize;
 
-            Color cellColor = {0, 0, 0, 0}; // Transparent by default
+            Color cellColor = {0, 0, 0, 0};
 
             switch (cellType) {
                 case '#':
@@ -322,7 +327,7 @@ void MapRenderer::DrawMinimapTiles(Vector2 pos, float size, float cellSize) cons
     }
 }
 
-void MapRenderer::DrawMinimapEntities(Vector2 pos, float size, float cellSize) const {
+void MapRenderer::DrawMinimapEntities(const Vector2 pos, float size, const float cellSize) const {
     const Vector2 offset = {pos.x + 2, pos.y + 2};
 
     for (const auto &treasure: map->getTreasures()) {
@@ -350,7 +355,7 @@ void MapRenderer::DrawMinimapEntities(Vector2 pos, float size, float cellSize) c
     }
 }
 
-void MapRenderer::DrawMinimapViewport(Vector2 pos, float size, float cellSize) const {
+void MapRenderer::DrawMinimapViewport(const Vector2 pos, float size, const float cellSize) const {
     const Vector2 offset = {pos.x + 2, pos.y + 2};
 
     const float viewX = offset.x + camera.position.x * cellSize;
@@ -364,7 +369,7 @@ void MapRenderer::DrawMinimapViewport(Vector2 pos, float size, float cellSize) c
     );
 }
 
-void MapRenderer::SetCellSize(float size) {
+void MapRenderer::SetCellSize(const float size) {
     cellSize = std::max(10.0f, std::min(size, 100.0f)); // Clamp to reasonable range
     visibleArea.needsUpdate = true;
 }

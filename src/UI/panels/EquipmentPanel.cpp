@@ -10,7 +10,9 @@ EquipmentPanel::EquipmentPanel(Hero *_player)
     : player(_player),
       isVisible(false),
       currentItem(nullptr),
-      newItem(nullptr) {
+      newItem(nullptr),
+      panelBackgroundColor(BLACK) {
+    // Add configurable background color
 }
 
 void EquipmentPanel::Show(const Item *_currentItem, const Item *_newItem) {
@@ -34,15 +36,31 @@ void EquipmentPanel::ShowComparison(const Item *newTreasure) {
     const Item *currentItem = nullptr;
     std::string typeStr = newTreasure->GetTypeStr();
 
+    // Fix the logic for finding current equipment
     if (typeStr == "ARMOR") {
-        if (inventory.hasArmor())
+        if (inventory.hasArmor()) {
             currentItem = &inventory.GetArmor();
+        }
         itemType = ItemType::ARMOR;
     } else if (typeStr == "WEAPON") {
-        currentItem = &inventory.GetWeapon();
+        // Check if player has a weapon equipped
+        try {
+            const Item &weapon = inventory.GetWeapon();
+            currentItem = &weapon;
+        } catch (...) {
+            // No weapon equipped
+            currentItem = nullptr;
+        }
         itemType = ItemType::WEAPON;
     } else if (typeStr == "SPELL") {
-        currentItem = &inventory.GetSpell();
+        // Check if player has a spell equipped
+        try {
+            const Item &spell = inventory.GetSpell();
+            currentItem = &spell;
+        } catch (...) {
+            // No spell equipped
+            currentItem = nullptr;
+        }
         itemType = ItemType::SPELL;
     }
 
@@ -77,17 +95,22 @@ void EquipmentPanel::SetupButtons() {
         this->OnEquipNewItem();
     });
 
-    const Color transparentColor = {0, 0, 0, 0};
-    const Color hoverColor = {255, 255, 255, 50};
-    const Color pressedColor = {255, 255, 255, 100};
+    // Set solid background colors instead of transparent
+    const Color normalColor = panelBackgroundColor;
+    const Color hoverColor = {50, 50, 50, 255}; // Slightly lighter for hover
+    const Color pressedColor = {100, 100, 100, 255}; // Even lighter for pressed
 
-    leftButton.SetColors(transparentColor, hoverColor, pressedColor, WHITE);
+    leftButton.SetColors(normalColor, hoverColor, pressedColor, WHITE);
     leftButton.SetBorder({255, 255, 255, 150}, 2);
     leftButton.EnableHoverAnimation(true, 1.05f, 8.0f);
 
-    rightButton.SetColors(transparentColor, hoverColor, pressedColor, WHITE);
+    rightButton.SetColors(normalColor, hoverColor, pressedColor, WHITE);
     rightButton.SetBorder({255, 255, 255, 150}, 2);
     rightButton.EnableHoverAnimation(true, 1.05f, 8.0f);
+}
+
+void EquipmentPanel::SetPanelBackgroundColor(const Color color) {
+    panelBackgroundColor = color;
 }
 
 void EquipmentPanel::Hide() {
@@ -101,8 +124,8 @@ bool EquipmentPanel::IsVisible() const {
 void EquipmentPanel::Update() {
     if (!isVisible) return;
 
-    leftButton.Update({0, 0});
-    rightButton.Update({0, 0});
+    leftButton.Update(GetMousePosition());
+    rightButton.Update(GetMousePosition());
 
     if (IsKeyPressed(KEY_ESCAPE)) {
         Hide();
@@ -202,6 +225,7 @@ void EquipmentPanel::DrawItemIcon(int x, int y, const Item *item) const {
     Color bgColor;
     std::string symbol;
 
+    // Use the item's actual type instead of relying on member variable
     const std::string typeStr = item->GetTypeStr();
     if (typeStr == "ARMOR") {
         bgColor = BLUE;
@@ -266,6 +290,7 @@ void EquipmentPanel::DrawItemStats(int x, int y, const Item *item, bool showComp
     DrawText(bonusText.c_str(), x, currentY, SMALL_FONT_SIZE, bonusColor);
     currentY += lineHeight;
 
+    // Generate description based on the actual item type
     std::string typeStr = item->GetTypeStr();
     std::string description;
     if (typeStr == "WEAPON") {
