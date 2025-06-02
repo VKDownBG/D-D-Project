@@ -154,10 +154,10 @@ void MapRenderer::Draw() const {
     const Rectangle mapArea = GetMapArea();
     // DrawRectangleRec(mapArea, BACKGROUND_COLOR);
 
-    // DrawMapBorder();
-    // DrawTiles();
-    // DrawEntities();
-    // DrawMinimap();
+    DrawMapBorder();
+    DrawTiles();
+    DrawEntities();
+    DrawMinimap();
 }
 
 void MapRenderer::DrawMapBorder() const {

@@ -515,12 +515,12 @@ void UIManager::InitializeGameplay() {
     Weapon weapon = hero->GetInventory().GetWeapon();
     gameHUD->SetWeapon(&weapon);
 
-    //if (hero->GetInventory().GetArmor())
-    Armor armor = hero->GetInventory().GetArmor();
-    gameHUD->SetArmor(&armor);
-
-    Spell spell = hero->GetInventory().GetSpell();
-    gameHUD->SetSpell(&spell);
+    // //if (hero->GetInventory().GetArmor())
+    // Armor armor = hero->GetInventory().GetArmor();
+    // gameHUD->SetArmor(&armor);
+    //
+    // Spell spell = hero->GetInventory().GetSpell();
+    // gameHUD->SetSpell(&spell);
 
     UpdateMapRenderer();
     UpdateHUDStats();
