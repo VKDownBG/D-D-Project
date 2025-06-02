@@ -63,27 +63,31 @@ void EquipmentPanel::SetupButtons() {
     const int leftPanelX = startX;
     const int rightPanelX = startX + PANEL_WIDTH + PANEL_SPACING;
 
+    // Create smaller buttons at the bottom of each panel instead of covering the entire panel
+    const int buttonHeight = 50; // Smaller button height
+    const int buttonY = startY + PANEL_HEIGHT - buttonHeight - 10; // Position at bottom of panel
+
     const Rectangle leftButtonRect = {
-        static_cast<float>(leftPanelX), static_cast<float>(startY), static_cast<float>(PANEL_WIDTH),
-        static_cast<float>(PANEL_HEIGHT)
+        static_cast<float>(leftPanelX + 10), static_cast<float>(buttonY),
+        static_cast<float>(PANEL_WIDTH - 20), static_cast<float>(buttonHeight)
     };
     const Rectangle rightButtonRect = {
-        static_cast<float>(rightPanelX), static_cast<float>(startY), static_cast<float>(PANEL_WIDTH),
-        static_cast<float>(PANEL_HEIGHT)
+        static_cast<float>(rightPanelX + 10), static_cast<float>(buttonY),
+        static_cast<float>(PANEL_WIDTH - 20), static_cast<float>(buttonHeight)
     };
 
-    leftButton = Button(leftButtonRect, "", [this]() {
+    leftButton = Button(leftButtonRect, "Keep Current", [this]() {
         this->OnKeepCurrentEquipment();
     });
 
-    rightButton = Button(rightButtonRect, "", [this]() {
+    rightButton = Button(rightButtonRect, "Equip New", [this]() {
         this->OnEquipNewItem();
     });
 
     // Set solid background colors instead of transparent
-    const Color normalColor = panelBackgroundColor;
-    const Color hoverColor = {50, 50, 50, 255}; // Slightly lighter for hover
-    const Color pressedColor = {100, 100, 100, 255}; // Even lighter for pressed
+    const Color normalColor = {40, 40, 40, 255}; // Darker background for buttons
+    const Color hoverColor = {60, 60, 60, 255}; // Slightly lighter for hover
+    const Color pressedColor = {80, 80, 80, 255}; // Even lighter for pressed
 
     leftButton.SetColors(normalColor, hoverColor, pressedColor, WHITE);
     leftButton.SetBorder({255, 255, 255, 150}, 2);
@@ -109,11 +113,23 @@ bool EquipmentPanel::IsVisible() const {
 void EquipmentPanel::Update() {
     if (!isVisible) return;
 
-    leftButton.Update(GetMousePosition());
-    rightButton.Update(GetMousePosition());
+    // Only update buttons when panel is visible and handle input carefully
+    Vector2 mousePos = GetMousePosition();
 
+    leftButton.Update(mousePos);
+    rightButton.Update(mousePos);
+
+    // Handle keyboard input
     if (IsKeyPressed(KEY_ESCAPE)) {
         Hide();
+    }
+
+    // Alternative keyboard controls
+    if (IsKeyPressed(KEY_ONE) || IsKeyPressed(KEY_KP_1)) {
+        OnKeepCurrentEquipment();
+    }
+    if (IsKeyPressed(KEY_TWO) || IsKeyPressed(KEY_KP_2)) {
+        OnEquipNewItem();
     }
 }
 
@@ -130,33 +146,42 @@ void EquipmentPanel::Draw() const {
     const int leftPanelX = startX;
     const int rightPanelX = startX + PANEL_WIDTH + PANEL_SPACING;
 
+    // Draw semi-transparent overlay
     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.5f));
 
-    leftButton.Draw();
-    rightButton.Draw();
+    // Draw panel backgrounds
+    DrawRectangle(leftPanelX, startY, PANEL_WIDTH, PANEL_HEIGHT, panelBackgroundColor);
+    DrawRectangle(rightPanelX, startY, PANEL_WIDTH, PANEL_HEIGHT, panelBackgroundColor);
 
+    // Draw panel borders
+    DrawRectangleLines(leftPanelX, startY, PANEL_WIDTH, PANEL_HEIGHT, WHITE);
+    DrawRectangleLines(rightPanelX, startY, PANEL_WIDTH, PANEL_HEIGHT, WHITE);
+
+    // Draw panel content
     DrawPanelContent(leftPanelX, startY, currentItem, false);
     DrawPanelContent(rightPanelX, startY, newItem, true);
 
-    const std::string currentTitle = currentItem ? "Keep Current" : "Keep None";
-    const std::string newTitle = "Equip New";
+    // Draw buttons
+    leftButton.Draw();
+    rightButton.Draw();
+
+    // Draw titles
+    const std::string currentTitle = currentItem ? "Current Equipment" : "No Equipment";
+    const std::string newTitle = "New Equipment";
 
     const int currentTitleWidth = MeasureText(currentTitle.c_str(), FONT_SIZE);
     const int newTitleWidth = MeasureText(newTitle.c_str(), FONT_SIZE);
 
-    const Color leftTitleColor = leftButton.IsHovered() ? YELLOW : WHITE;
-    const Color rightTitleColor = rightButton.IsHovered() ? YELLOW : WHITE;
+    DrawText(currentTitle.c_str(), leftPanelX + (PANEL_WIDTH - currentTitleWidth) / 2, startY - 30, FONT_SIZE, WHITE);
+    DrawText(newTitle.c_str(), rightPanelX + (PANEL_WIDTH - newTitleWidth) / 2, startY - 30, FONT_SIZE, WHITE);
 
-    DrawText(currentTitle.c_str(), leftPanelX + (PANEL_WIDTH - currentTitleWidth) / 2, startY - 30, FONT_SIZE,
-             leftTitleColor);
-    DrawText(newTitle.c_str(), rightPanelX + (PANEL_WIDTH - newTitleWidth) / 2, startY - 30, FONT_SIZE,
-             rightTitleColor);
-
-    const std::string instruction = "Click to choose equipment or press ESC to close";
+    // Draw instructions
+    const std::string instruction = "Click to choose equipment, press 1/2 for keyboard selection, or ESC to close";
     const int instructionWidth = MeasureText(instruction.c_str(), SMALL_FONT_SIZE);
     DrawText(instruction.c_str(), (screenWidth - instructionWidth) / 2, startY + PANEL_HEIGHT + 10, SMALL_FONT_SIZE,
              LIGHTGRAY);
 
+    // Draw hover hints
     if (leftButton.IsHovered()) {
         const std::string keepHint = currentItem ? "Keep your current equipment" : "Keep no equipment in this slot";
         const int hintWidth = MeasureText(keepHint.c_str(), SMALL_FONT_SIZE);
@@ -200,8 +225,6 @@ void EquipmentPanel::DrawPanelContent(const int x, const int y, const Item *item
 
     const std::string typeStr = item->GetTypeStr();
     DrawText(typeStr.c_str(), x + 10, y + 110, SMALL_FONT_SIZE, LIGHTGRAY);
-
-    DrawItemIcon(x + 10, y + 10, item);
 
     DrawItemStats(x + 10, y + 140, item, showComparison);
 }
