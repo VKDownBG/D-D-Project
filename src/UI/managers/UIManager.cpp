@@ -261,16 +261,12 @@ void UIManager::ShowEquipmentChoice(const Item *newItem) {
             if (hero->hasArmor()) {
                 currentItem = &hero->GetInventory().GetArmor();
             }
-
-            DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, 127});
             break;
         case ItemType::WEAPON:
             currentItem = &hero->GetInventory().GetWeapon();
-            DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, 127});
             break;
         case ItemType::SPELL:
             currentItem = &hero->GetInventory().GetSpell();
-            DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, 127});
             break;
         default:
             break;

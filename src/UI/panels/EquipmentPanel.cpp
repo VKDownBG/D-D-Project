@@ -36,31 +36,16 @@ void EquipmentPanel::ShowComparison(const Item *newTreasure) {
     const Item *currentItem = nullptr;
     std::string typeStr = newTreasure->GetTypeStr();
 
-    // Fix the logic for finding current equipment
     if (typeStr == "ARMOR") {
         if (inventory.hasArmor()) {
             currentItem = &inventory.GetArmor();
         }
         itemType = ItemType::ARMOR;
     } else if (typeStr == "WEAPON") {
-        // Check if player has a weapon equipped
-        try {
-            const Item &weapon = inventory.GetWeapon();
-            currentItem = &weapon;
-        } catch (...) {
-            // No weapon equipped
-            currentItem = nullptr;
-        }
+        currentItem = &inventory.GetWeapon();
         itemType = ItemType::WEAPON;
     } else if (typeStr == "SPELL") {
-        // Check if player has a spell equipped
-        try {
-            const Item &spell = inventory.GetSpell();
-            currentItem = &spell;
-        } catch (...) {
-            // No spell equipped
-            currentItem = nullptr;
-        }
+        currentItem = &inventory.GetSpell();
         itemType = ItemType::SPELL;
     }
 
@@ -183,7 +168,7 @@ void EquipmentPanel::Draw() const {
     }
 }
 
-void EquipmentPanel::DrawPanelContent(int x, int y, const Item *item, bool showComparison) const {
+void EquipmentPanel::DrawPanelContent(const int x, const int y, const Item *item, const bool showComparison) const {
     if (!item) {
         const std::string noEquipText = "No Equipment";
         const int textWidth = MeasureText(noEquipText.c_str(), FONT_SIZE);
@@ -215,6 +200,8 @@ void EquipmentPanel::DrawPanelContent(int x, int y, const Item *item, bool showC
 
     const std::string typeStr = item->GetTypeStr();
     DrawText(typeStr.c_str(), x + 10, y + 110, SMALL_FONT_SIZE, LIGHTGRAY);
+
+    DrawItemIcon(x + 10, y + 10, item);
 
     DrawItemStats(x + 10, y + 140, item, showComparison);
 }
