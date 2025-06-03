@@ -384,37 +384,9 @@ void UIManager::SetSelectedRace(const Race race) {
 void UIManager::OnRaceSelected(const Race race) {
     selectedRace = race;
 
-    // Recreate hero with selected race.
-    if (hero) {
-        delete hero;
+    if (onRaceSelectedCallback) {
+        onRaceSelectedCallback(race);
     }
-
-    std::string raceName;
-    switch (race) {
-        case Race::Human: raceName = "Human";
-            break;
-        case Race::Mage: raceName = "Mage";
-            break;
-        case Race::Warrior: raceName = "Warrior";
-            break;
-    }
-
-    hero = new Hero(raceName, "Player"); // Create a new hero object
-
-    // Update UI components with the new hero.
-    if (gameHUD) {
-        gameHUD->Initialize(hero);
-        gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
-        gameHUD->SetArmor(&hero->GetInventory().GetArmor());
-        gameHUD->SetSpell(&hero->GetInventory().GetSpell());
-    }
-    if (equipmentPanel) {
-        delete equipmentPanel; // Recreate equipment panel with new hero reference
-        equipmentPanel = new EquipmentPanel(hero);
-    }
-
-    // Initialize game with selected character.
-    StartNewGame();
 }
 
 // Callback when the back button is pressed in character selection.
@@ -751,14 +723,11 @@ void UIManager::InitializeGameplay() {
     }
 
     // Set weapon, armor, and spell for HUD display.
-    const Weapon *weapon = &hero->GetInventory().GetWeapon();
-    gameHUD->SetWeapon(weapon);
-
-    const Armor *armor = &hero->GetInventory().GetArmor();
-    gameHUD->SetArmor(armor);
-
-    const Spell *spell = &hero->GetInventory().GetSpell();
-    gameHUD->SetSpell(spell);
+    if (hero && gameHUD) {
+        gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
+        gameHUD->SetArmor(&hero->GetInventory().GetArmor());
+        gameHUD->SetSpell(&hero->GetInventory().GetSpell());
+    }
 
     UpdateMapRenderer(); // Ensure map is rendered correctly
     UpdateHUDStats(); // Update HUD stats

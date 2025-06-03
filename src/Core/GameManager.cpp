@@ -43,7 +43,10 @@ void GameManager::InitializeSystems() {
 // GameManager.cpp
 void GameManager::HandleRaceSelection(const Race race) {
     // Recreate hero with selected race
-    delete hero;
+    if (hero) {
+        delete hero;
+        hero = nullptr;
+    }
 
     std::string raceName;
     switch (race) {
@@ -59,7 +62,7 @@ void GameManager::HandleRaceSelection(const Race race) {
 
     // Update systems with new hero
     uiManager->SetHero(hero);
-    uiManager->UpdateHUDStats();
+    //uiManager->UpdateHUDStats();
     uiManager->SetState(UIState::GAMEPLAY);
     LoadCurrentLevel();
 }
@@ -194,10 +197,13 @@ void GameManager::HandleTreasureCollection() {
             heroPos.y == treasure.getPosition().y) {
             currentMap->removeTreasure(treasure);
 
-            // Generate item and transfer ownership to UIManager
-            std::unique_ptr<Item> newItem(ItemGenerator::generateRandomItem(currentMap->GetCurrentLevel()));
+            // Generate item and transfer ownership
+            std::unique_ptr<Item> newItem(ItemGenerator::generateRandomItem(
+                currentMap->GetCurrentLevel()
+            ));
+
             if (newItem) {
-                uiManager->ShowEquipmentChoice(std::move(newItem).get());
+                uiManager->ShowEquipmentChoice(std::move(newItem));
                 uiManager->UpdateMapRenderer();
                 return;
             }
