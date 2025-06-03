@@ -22,9 +22,43 @@ struct RaceData {
 };
 
 class CharacterSelectionPanel {
+public:
+    CharacterSelectionPanel(int screenWidth, int screenHeight);
+
+    ~CharacterSelectionPanel();
+
+    // Core methods
+    void Initialize();
+
+
+    void Show();
+
+    void Hide();
+
+    void Update();
+
+    void Draw() const;
+
+    // State queries
+    bool IsVisible() const;
+
+    bool IsSelectionConfirmed() const;
+
+    Race GetSelectedRace() const;
+
+    // Event handlers
+    void SetOnRaceSelected(std::function<void(Race)> callback);
+
+    void SetOnBack(std::function<void()> callback);
+
+    // Reset state
+    void Reset();
+
 private:
     int screenWidth;
     int screenHeight;
+
+    Texture2D backgroundTexture;
 
     // Race data
     std::vector<RaceData> races;
@@ -58,39 +92,10 @@ private:
     static constexpr int RACE_PANEL_SPACING = 50;
     static constexpr int BUTTON_HEIGHT = 50;
 
-public:
-    CharacterSelectionPanel(int screenWidth, int screenHeight);
-
-    ~CharacterSelectionPanel() = default;
-
-    // Core methods
-    void Initialize();
-
-    void Show();
-
-    void Hide();
-
-    void Update();
-
-    void Draw() const;
-
-    // State queries
-    bool IsVisible() const;
-
-    bool IsSelectionConfirmed() const;
-
-    Race GetSelectedRace() const;
-
-    // Event handlers
-    void SetOnRaceSelected(std::function<void(Race)> callback);
-
-    void SetOnBack(std::function<void()> callback);
-
-    // Reset state
-    void Reset();
-
 private:
     // Helper methods
+    void LoadBackgroundImage();
+
     void InitializeRaceData();
 
     void CreateRaceButtons();
