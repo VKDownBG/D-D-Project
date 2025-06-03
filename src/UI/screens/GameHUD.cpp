@@ -61,7 +61,7 @@ GameHUD::GameHUD(const int _screenWidth, const int _screenHeight)
     });
     hpBar.EnablePulsatingEffect(true, 0.2f, 0.8f);
 
-    xpBar.SetColors({27, 27, 227, 70}, {35, 152, 80, 255}, {9, 9, 125, 255});
+    xpBar.SetColors(mysticBlue, {35, 152, 80, 255}, {9, 9, 125, 255});
     xpBar.SetBorderThickness(3.0f);
     xpBar.SetRounding(0.2f);
     xpBar.ShowText(true);

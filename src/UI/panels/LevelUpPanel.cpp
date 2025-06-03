@@ -6,7 +6,7 @@
 #include <algorithm>
 
 LevelUpPanel::LevelUpPanel()
-    : panelBounds({100, 100, 450, 300}),
+    : panelBounds({static_cast<float>(GetScreenWidth()) / 2 - 150, static_cast<float>(GetScreenHeight()) / 2 - 100, 450, 300}),
       font(GetFontDefault()),
       panelColor({40, 40, 40, 240}),
       borderColor(WHITE),
@@ -32,7 +32,7 @@ LevelUpPanel::LevelUpPanel()
     SetupArrowButtons();
 }
 
-LevelUpPanel::LevelUpPanel(Rectangle bounds, const Font &customFont)
+LevelUpPanel::LevelUpPanel(const Rectangle bounds, const Font &customFont)
     : LevelUpPanel() {
     SetBounds(bounds);
     SetFont(customFont);
@@ -45,7 +45,7 @@ void LevelUpPanel::Update() {
 
     confirmButton.SetActive(totalPointsAllocated == maxPoints);
     confirmButton.Update(mousePos);
-    cancelButton.Update(mousePos);
+    // cancelButton.Update(mousePos);
 
     strengthUpButton.Update(mousePos);
     strengthDownButton.Update(mousePos);
@@ -82,8 +82,8 @@ void LevelUpPanel::Draw() const {
     DrawRectangleRoundedLines(panelBounds, 0.1f, 10, 2, borderColor);
 
     const std::string title = "Level Up!";
-    Vector2 titleSize = MeasureTextEx(font, title.c_str(), 24, 1);
-    Vector2 titlePos = {
+    const Vector2 titleSize = MeasureTextEx(font, title.c_str(), 24, 1);
+    const Vector2 titlePos = {
         panelBounds.x + (panelBounds.width - titleSize.x) / 2,
         panelBounds.y + 15
     };
@@ -102,7 +102,7 @@ void LevelUpPanel::Draw() const {
     DrawTextEx(font, remainingText.c_str(), {panelBounds.x + 20, panelBounds.y + 205}, 16, 1, textColor);
 
     confirmButton.Draw();
-    cancelButton.Draw();
+    //cancelButton.Draw();
 
     strengthUpButton.Draw();
     strengthDownButton.Draw();
@@ -139,6 +139,7 @@ void LevelUpPanel::UpdateInputField(Rectangle inputBounds, bool &isActive, std::
 
     try {
         pointValue = std::stoi(inputText);
+        ValidateAndUpdatePoints(); // Enforce limits after input
     } catch (const std::exception &) {
         pointValue = 0;
         inputText = "0";
@@ -164,14 +165,37 @@ void LevelUpPanel::UpdateInputField(Rectangle inputBounds, bool &isActive, std::
 // }
 
 void LevelUpPanel::ValidateAndUpdatePoints() {
-    strengthPoints = std::min(strengthPoints, maxPoints - manaPoints - healthPoints);
-    manaPoints = std::min(manaPoints, maxPoints - strengthPoints - healthPoints);
-    healthPoints = std::min(healthPoints, maxPoints - strengthPoints - manaPoints);
+    // First ensure no negative values
+    strengthPoints = std::max(0, strengthPoints);
+    manaPoints = std::max(0, manaPoints);
+    healthPoints = std::max(0, healthPoints);
 
+    // Calculate total allocated points
     totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
+
+    // If total exceeds max, reduce the most recently changed field
+    if (totalPointsAllocated > maxPoints) {
+        int excess = totalPointsAllocated - maxPoints;
+
+        if (healthPoints >= excess) {
+            healthPoints -= excess;
+        } else if (manaPoints >= excess) {
+            manaPoints -= excess;
+        } else {
+            strengthPoints -= excess;
+        }
+
+        // Recalculate after adjustment
+        totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
+    }
+
+    // Update text fields to match clamped values
+    strengthInputText = std::to_string(strengthPoints);
+    manaInputText = std::to_string(manaPoints);
+    healthInputText = std::to_string(healthPoints);
 }
 
-void LevelUpPanel::DrawInputField(Rectangle bounds, const std::string &text, bool isActive,
+void LevelUpPanel::DrawInputField(const Rectangle bounds, const std::string &text, const bool isActive,
                                   const std::string &level) const {
     Color bgColor = isActive ? inputActiveColor : inputBgColor;
 
@@ -186,7 +210,7 @@ void LevelUpPanel::DrawInputField(Rectangle bounds, const std::string &text, boo
     DrawTextEx(font, text.c_str(), textPos, 16, 1, WHITE);
 
     if (isActive) {
-        float cursorX = textPos.x + textSize.x + 2;
+        const float cursorX = textPos.x + textSize.x + 2;
         if (static_cast<int>(GetTime() * 2) % 2) {
             DrawLine(static_cast<int>(cursorX), static_cast<int>(bounds.y + 5),
                      static_cast<int>(cursorX), static_cast<int>(bounds.y + bounds.height - 5),WHITE);
@@ -276,8 +300,8 @@ void LevelUpPanel::UpdateButtonPositions() {
                                   healthInputBounds.y, arrowSize, arrowSize
                               }, "-", nullptr);
 
-    confirmButton = Button({panelX + 50, panelY + 240, 100, 40}, "Confirm", nullptr);
-    cancelButton = Button({panelX + confirmButton.GetBounds().x + 75, panelY + 240, 100, 40}, "Cancel", nullptr);
+    confirmButton = Button({panelX + 150, panelY + 240, 100, 40}, "Confirm", nullptr);
+    //cancelButton = Button({panelX + confirmButton.GetBounds().x + 75, panelY + 240, 100, 40}, "Cancel", nullptr);
 
     SetupArrowButtons();
 }
@@ -341,13 +365,6 @@ void LevelUpPanel::SetupArrowButtons() {
             onConfirm(strengthPoints, manaPoints, healthPoints);
         }
         Hide();
-    });
-
-    cancelButton = Button(cancelButton.GetBounds(), "Cancel", [this]() {
-        if (onCancel) {
-            onCancel();
-        }
-        Reset();
     });
 }
 

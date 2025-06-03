@@ -25,9 +25,13 @@ public:
 
     void Draw() const;
 
+    float GetCellSize() const;
+
     void SetCellSize(float size);
 
     void SetVisibleRange(int cellsX, int cellsY);
+
+    Vector2 WorldToScreen(int worldX, int worldY) const;
 
     void removeMonster(const Monster *monster);
 
@@ -78,8 +82,6 @@ private:
     void UpdateCamera();
 
     void UpdateVisibleArea() const;
-
-    Vector2 WorldToScreen(int worldX, int worldY) const;
 
     Rectangle GetMapArea() const;
 

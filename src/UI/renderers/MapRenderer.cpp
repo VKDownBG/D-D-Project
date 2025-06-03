@@ -369,6 +369,10 @@ void MapRenderer::DrawMinimapViewport(const Vector2 pos, float size, const float
     );
 }
 
+float MapRenderer::GetCellSize() const {
+    return cellSize;
+}
+
 void MapRenderer::SetCellSize(const float size) {
     cellSize = std::max(10.0f, std::min(size, 100.0f)); // Clamp to reasonable range
     visibleArea.needsUpdate = true;
@@ -385,5 +389,20 @@ void MapRenderer::SetVisibleRange(const int cellsX, const int cellsY) {
             static_cast<float>(heroPosition->x) - camera.visibleCellsX * 0.5f,
             static_cast<float>(heroPosition->y) - camera.visibleCellsY * 0.5f
         };
+    }
+}
+
+void MapRenderer::removeMonster(const Monster *monster) {
+    const Vector2 screenPos = WorldToScreen(monster->GetPosition().x, monster->GetPosition().y);
+    const Rectangle destRect = {screenPos.x, screenPos.y, cellSize, cellSize};
+
+    const Texture *texture = &floorTexture;
+
+    if (texture->id != 0) {
+        DrawTexturePro(
+            *texture,
+            {0, 0, static_cast<float>(texture->width), static_cast<float>(texture->height)},
+            destRect, {0, 0}, 0.0f, WHITE
+        );
     }
 }

@@ -502,18 +502,22 @@ void UIManager::DrawDefeat() const {
 void UIManager::DrawPortals() const {
     if (!mapRenderer || portals.empty()) return;
 
+    const float cellSize = mapRenderer->GetCellSize();
+
     for (const auto &portal: portals) {
         if (portal.isActive) {
+            // Convert world position to screen coordinates
+            Vector2 screenPos = mapRenderer->WorldToScreen(portal.position.x, portal.position.y);
+
+            // Adjust to center of cell
+            screenPos.x += cellSize / 2;
+            screenPos.y += cellSize / 2;
+
             const float pulseScale = 1.0f + std::sin(portal.animationTime * 4.0f) * 0.2f;
             const float alpha = (std::sin(portal.animationTime * 3.0f) + 1.0f) * 127;
-
             const Color portalColor = {100, 200, 255, static_cast<unsigned char>(alpha)};
 
-            // Adjust coordinates based on your tile size (assuming 40x40 tiles)
-            const Vector2 screenPos = {
-                static_cast<float>(portal.position.x * 40),
-                static_cast<float>(portal.position.y * 40)
-            };
+            // Draw portal at corrected position
             DrawCircleV(screenPos, 20.0f * pulseScale, portalColor);
             DrawCircleLinesV(screenPos, 25.0f * pulseScale, {150, 255, 255, 200});
         }
@@ -747,7 +751,8 @@ void UIManager::OnBattleEnd(const BattleResult result) {
     }
 
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
-        // currentMap->removeMonster(currentBattleMonster);
+        mapRenderer->removeMonster(currentBattleMonster);
+        UpdateMapRenderer();
         UpdateHUDStats();
     }
 
