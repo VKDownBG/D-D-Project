@@ -292,20 +292,18 @@ void MapRenderer::DrawEntities() const {
 }
 
 void MapRenderer::DrawMinimap() const {
-    if (!map) return;
+    if (!map || !heroPosition) return;
 
-    constexpr float MINIMAP_SIZE = 150.0f;
+    constexpr float MINIMAP_SIZE = 200.0f; // Increased from 150
     constexpr float MARGIN = 20.0f;
+    constexpr int MINIMAP_TILES = 15; // Show 15x15 tiles around hero
 
     const Vector2 minimapPos = {
         screenWidth - MINIMAP_SIZE - MARGIN,
         screenHeight - MINIMAP_SIZE - MARGIN
     };
 
-    const float cellSize = std::min(
-        (MINIMAP_SIZE - 4) / static_cast<float>(map->getWidth()),
-        (MINIMAP_SIZE - 4) / static_cast<float>(map->getHeight())
-    );
+    const float cellSize = (MINIMAP_SIZE - 4) / MINIMAP_TILES;
 
     DrawMinimapBackground(minimapPos, MINIMAP_SIZE);
     DrawMinimapTiles(minimapPos, MINIMAP_SIZE, cellSize);
@@ -321,13 +319,48 @@ void MapRenderer::DrawMinimapBackground(const Vector2 pos, const float size) con
 
 void MapRenderer::DrawMinimapTiles(const Vector2 pos, float size, const float cellSize) const {
     const Vector2 offset = {pos.x + 2, pos.y + 2};
+    constexpr int MINIMAP_TILES = 15;
+    const int halfTiles = MINIMAP_TILES / 2;
 
-    for (int y = 0; y < static_cast<int>(map->getHeight()); y++) {
-        for (int x = 0; x < static_cast<int>(map->getWidth()); x++) {
-            const char cellType = map->getCell({x, y});
+    // Calculate the minimap's world bounds centered on hero
+    int minX = heroPosition->x - halfTiles;
+    int minY = heroPosition->y - halfTiles;
+    int maxX = minX + MINIMAP_TILES;
+    int maxY = minY + MINIMAP_TILES;
 
-            const float cellX = offset.x + x * cellSize;
-            const float cellY = offset.y + y * cellSize;
+    // Clamp to map boundaries and shift if needed
+    if (minX < 0) {
+        maxX += -minX; // Shift right
+        minX = 0;
+    }
+    if (minY < 0) {
+        maxY += -minY; // Shift down
+        minY = 0;
+    }
+    if (maxX > static_cast<int>(map->getWidth())) {
+        minX -= (maxX - static_cast<int>(map->getWidth())); // Shift left
+        maxX = static_cast<int>(map->getWidth());
+    }
+    if (maxY > static_cast<int>(map->getHeight())) {
+        minY -= (maxY - static_cast<int>(map->getHeight())); // Shift up
+        maxY = static_cast<int>(map->getHeight());
+    }
+
+    // Ensure we don't go below 0 after shifting
+    minX = std::max(0, minX);
+    minY = std::max(0, minY);
+
+    // Draw tiles in the visible minimap area
+    for (int worldY = minY; worldY < maxY; worldY++) {
+        for (int worldX = minX; worldX < maxX; worldX++) {
+            const char cellType = map->getCell({worldX, worldY});
+
+            // Convert world coordinates to minimap screen coordinates
+            const int minimapX = worldX - minX;
+            const int minimapY = worldY - minY;
+
+            const float cellX = offset.x + minimapX * cellSize;
+            const float cellY = offset.y + minimapY * cellSize;
 
             Color cellColor = {0, 0, 0, 0};
 
@@ -353,46 +386,119 @@ void MapRenderer::DrawMinimapTiles(const Vector2 pos, float size, const float ce
 
 void MapRenderer::DrawMinimapEntities(const Vector2 pos, float size, const float cellSize) const {
     const Vector2 offset = {pos.x + 2, pos.y + 2};
+    constexpr int MINIMAP_TILES = 15;
+    const int halfTiles = MINIMAP_TILES / 2;
 
-    for (const auto &treasure: map->getTreasures()) {
-        float x = offset.x + treasure.getPosition().x * cellSize;
-        float y = offset.y + treasure.getPosition().y * cellSize;
-        DrawRectangle(x, y, cellSize, cellSize, {220, 180, 50, 255});
+    // Calculate the minimap's world bounds (same logic as tiles)
+    int minX = heroPosition->x - halfTiles;
+    int minY = heroPosition->y - halfTiles;
+    int maxX = minX + MINIMAP_TILES;
+    int maxY = minY + MINIMAP_TILES;
+
+    // Apply the same clamping and shifting logic
+    if (minX < 0) {
+        maxX += -minX;
+        minX = 0;
+    }
+    if (minY < 0) {
+        maxY += -minY;
+        minY = 0;
+    }
+    if (maxX > static_cast<int>(map->getWidth())) {
+        minX -= (maxX - static_cast<int>(map->getWidth()));
+        maxX = static_cast<int>(map->getWidth());
+    }
+    if (maxY > static_cast<int>(map->getHeight())) {
+        minY -= (maxY - static_cast<int>(map->getHeight()));
+        maxY = static_cast<int>(map->getHeight());
     }
 
-    // Draw monsters (only if not defeated)
-    for (const auto &monster: map->getMonsters()) {
-        if (!monster.isDefeated()) {
-            const float x = offset.x + monster.GetPosition().x * cellSize;
-            const float y = offset.y + monster.GetPosition().y * cellSize;
+    minX = std::max(0, minX);
+    minY = std::max(0, minY);
 
-            const Color color = (monster.GetType() == MonsterType::BOSS)
-                                    ? Color{200, 50, 50, 255}
-            : Color{180, 80, 80, 255};
+    // Draw treasures within the minimap bounds
+    for (const auto &treasure: map->getTreasures()) {
+        const int treasureX = treasure.getPosition().x;
+        const int treasureY = treasure.getPosition().y;
 
-            DrawRectangle(x, y, cellSize, cellSize, color);
+        if (treasureX >= minX && treasureX < maxX && treasureY >= minY && treasureY < maxY) {
+            const float x = offset.x + (treasureX - minX) * cellSize;
+            const float y = offset.y + (treasureY - minY) * cellSize;
+            DrawRectangle(x, y, cellSize, cellSize, {220, 180, 50, 255});
         }
     }
 
-    if (heroPosition) {
-        const float x = offset.x + heroPosition->x * cellSize;
-        const float y = offset.y + heroPosition->y * cellSize;
-        DrawRectangle(x, y, cellSize, cellSize, {50, 150, 220, 255});
+    // Draw monsters within the minimap bounds (only if not defeated)
+    for (const auto &monster: map->getMonsters()) {
+        if (!monster.isDefeated()) {
+            const int monsterX = monster.GetPosition().x;
+            const int monsterY = monster.GetPosition().y;
+
+            if (monsterX >= minX && monsterX < maxX && monsterY >= minY && monsterY < maxY) {
+                const float x = offset.x + (monsterX - minX) * cellSize;
+                const float y = offset.y + (monsterY - minY) * cellSize;
+
+                const Color color = (monster.GetType() == MonsterType::BOSS)
+                                        ? Color{200, 50, 50, 255}
+                                        : Color{180, 80, 80, 255};
+
+                DrawRectangle(x, y, cellSize, cellSize, color);
+            }
+        }
     }
+
+    // Draw hero (always visible since minimap is centered on hero)
+    const float heroX = offset.x + (heroPosition->x - minX) * cellSize;
+    const float heroY = offset.y + (heroPosition->y - minY) * cellSize;
+    DrawRectangle(heroX, heroY, cellSize, cellSize, {50, 150, 220, 255});
 }
 
 void MapRenderer::DrawMinimapViewport(const Vector2 pos, float size, const float cellSize) const {
     const Vector2 offset = {pos.x + 2, pos.y + 2};
+    constexpr int MINIMAP_TILES = 15;
+    const int halfTiles = MINIMAP_TILES / 2;
 
-    const float viewX = offset.x + camera.position.x * cellSize;
-    const float viewY = offset.y + camera.position.y * cellSize;
+    // Calculate minimap bounds
+    int minX = heroPosition->x - halfTiles;
+    int minY = heroPosition->y - halfTiles;
+    int maxX = minX + MINIMAP_TILES;
+    int maxY = minY + MINIMAP_TILES;
+
+    // Apply clamping and shifting
+    if (minX < 0) {
+        maxX += -minX;
+        minX = 0;
+    }
+    if (minY < 0) {
+        maxY += -minY;
+        minY = 0;
+    }
+    if (maxX > static_cast<int>(map->getWidth())) {
+        minX -= (maxX - static_cast<int>(map->getWidth()));
+        maxX = static_cast<int>(map->getWidth());
+    }
+    if (maxY > static_cast<int>(map->getHeight())) {
+        minY -= (maxY - static_cast<int>(map->getHeight()));
+        maxY = static_cast<int>(map->getHeight());
+    }
+
+    minX = std::max(0, minX);
+    minY = std::max(0, minY);
+
+    // Calculate viewport position relative to minimap
+    const float viewX = offset.x + (camera.position.x - minX) * cellSize;
+    const float viewY = offset.y + (camera.position.y - minY) * cellSize;
     const float viewWidth = camera.visibleCellsX * cellSize;
     const float viewHeight = camera.visibleCellsY * cellSize;
 
-    DrawRectangleLinesEx(
-        {viewX, viewY, viewWidth, viewHeight},
-        1, {220, 220, 255, 200}
-    );
+    // Only draw if viewport is within minimap bounds
+    if (viewX + viewWidth > offset.x && viewX < offset.x + MINIMAP_TILES * cellSize &&
+        viewY + viewHeight > offset.y && viewY < offset.y + MINIMAP_TILES * cellSize) {
+        DrawRectangleLinesEx(
+            {viewX, viewY, viewWidth, viewHeight},
+            1, {220, 220, 255, 200}
+        );
+    }
 }
 
 float MapRenderer::GetCellSize() const {

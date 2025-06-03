@@ -7,6 +7,7 @@
 
 #include "C:/DandD/include/UI/screens/MainMenu.h"
 #include "C:/DandD/include/UI/screens/GameHUD.h"
+#include "C:/DandD/include/UI/panels/CharacterSelectionPanel.h"
 #include "C:/DandD/include/UI/panels/BattlePanel.h"
 #include "C:/DandD/include/UI/panels/LevelUpPanel.h"
 #include "C:/DandD/include/UI/panels/EquipmentPanel.h"
@@ -23,6 +24,7 @@
 
 enum class UIState {
     MAIN_MENU,
+    CHARACTER_SELECTION,
     GAMEPLAY,
     BATTLE,
     LEVEL_UP,
@@ -81,6 +83,18 @@ public:
 
     void CreatePortal();
 
+    void UpdateCharacterSelection(float deltaTime);
+
+    void DrawCharacterSelection() const;
+
+    void ShowCharacterSelection();
+
+    void SetSelectedRace(Race race);
+
+    void OnRaceSelected(Race race);
+
+    void OnCharacterSelectionBack();
+
     void StartBattle(Hero *hero, Monster *monster);
 
     void EndBattle();
@@ -126,6 +140,7 @@ private:
 
     MainMenu *mainMenu;
     GameHUD *gameHUD;
+    CharacterSelectionPanel *characterSelectionPanel;
     BattlePanel *battlePanel;
     LevelUpPanel *levelUpPanel;
     EquipmentPanel *equipmentPanel;
@@ -137,6 +152,8 @@ private:
     Monster *currentBattleMonster;
     BattleSystem *battleSystem;
     DefeatPanel *defeatPanel;
+
+    Race selectedRace;
 
     int currentLevel;
     std::vector<Portal> portals;

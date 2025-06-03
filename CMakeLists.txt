@@ -50,6 +50,8 @@ add_executable(DANDD
         src/UI/panels/LevelUpPanel.cpp
         include/UI/panels/DefeatPanel.h
         src/UI/panels/DefeatPanel.cpp
+        include/UI/panels/CharacterSelectionPanel.h
+        src/UI/panels/CharacterSelectionPanel.cpp
 )
 
 # Link libraries

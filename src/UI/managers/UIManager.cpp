@@ -11,7 +11,8 @@
 UIManager::UIManager(const int _screenWidth, const int _screenHeight)
     : screenWidth(_screenWidth), screenHeight(_screenHeight),
       currentState(UIState::MAIN_MENU), previousState(UIState::MAIN_MENU),
-      mainMenu(nullptr), gameHUD(nullptr), battlePanel(nullptr), levelUpPanel(nullptr),
+      mainMenu(nullptr), gameHUD(nullptr), characterSelectionPanel(nullptr), selectedRace(Race::Human),
+      battlePanel(nullptr), levelUpPanel(nullptr),
       equipmentPanel(nullptr), mapRenderer(nullptr),
       hero(nullptr), currentMap(nullptr), attackSystem(nullptr), currentBattleMonster(nullptr),
       battleSystem(nullptr), defeatPanel(nullptr),
@@ -32,8 +33,19 @@ void UIManager::Initialize() {
     if (!equipmentPanel) equipmentPanel = new EquipmentPanel(hero);
     if (!mapRenderer) mapRenderer = new MapRenderer(screenWidth, screenHeight);
     if (!battleSystem) battleSystem = new BattleSystem();
+    if (!characterSelectionPanel) characterSelectionPanel = new CharacterSelectionPanel(screenWidth, screenHeight);
 
     if (mainMenu) mainMenu->Initialize();
+
+    if (characterSelectionPanel) {
+        characterSelectionPanel->Initialize();
+        characterSelectionPanel->SetOnRaceSelected([this](Race race) {
+            OnRaceSelected(race);
+        });
+        characterSelectionPanel->SetOnBack([this]() {
+            OnCharacterSelectionBack();
+        });
+    }
 
     if (battleSystem) {
         battleSystem->SetBattleEndCallback([this](const BattleResult result) {
@@ -74,6 +86,9 @@ void UIManager::Unload() {
         mapRenderer = nullptr;
     }
 
+    delete characterSelectionPanel;
+    characterSelectionPanel = nullptr;
+
     delete battleSystem;
     battleSystem = nullptr;
 
@@ -113,6 +128,9 @@ void UIManager::Update(const float deltaTime) {
         case UIState::DEFEAT:
             UpdateDefeat(deltaTime);
             break;
+        case UIState::CHARACTER_SELECTION:
+            UpdateCharacterSelection(deltaTime);
+            break;
     }
 
     for (auto &portal: portals) {
@@ -142,6 +160,9 @@ void UIManager::Draw() const {
             break;
         case UIState::DEFEAT:
             DrawDefeat();
+            break;
+        case UIState::CHARACTER_SELECTION:
+            DrawCharacterSelection();
             break;
     }
 }
@@ -292,6 +313,74 @@ void UIManager::CreatePortal() {
             break;
         }
     }
+}
+
+void UIManager::UpdateCharacterSelection(const float deltaTime) {
+    if (characterSelectionPanel) {
+        characterSelectionPanel->Update();
+
+        if (characterSelectionPanel->IsSelectionConfirmed()) {
+            SetState(UIState::GAMEPLAY);
+        }
+    }
+}
+
+void UIManager::DrawCharacterSelection() const {
+    // Draw a background
+    DrawRectangle(0, 0, screenWidth, screenHeight, {20, 10, 5, 255});
+
+    if (characterSelectionPanel) {
+        characterSelectionPanel->Draw();
+    }
+}
+
+void UIManager::ShowCharacterSelection() {
+    if (characterSelectionPanel) {
+        characterSelectionPanel->Reset();
+        characterSelectionPanel->Show();
+        SetState(UIState::CHARACTER_SELECTION);
+    }
+}
+
+void UIManager::SetSelectedRace(Race race) {
+    selectedRace = race;
+}
+
+void UIManager::OnRaceSelected(Race race) {
+    selectedRace = race;
+
+    // Recreate hero with selected race
+    if (hero) {
+        delete hero;
+    }
+
+    std::string raceName;
+    switch (race) {
+        case Race::Human: raceName = "Human";
+            break;
+        case Race::Mage: raceName = "Mage";
+            break;
+        case Race::Warrior: raceName = "Warrior";
+            break;
+    }
+
+    hero = new Hero(raceName, "Player");
+
+    // Update UI components with new hero
+    if (gameHUD) {
+        gameHUD->Initialize(hero);
+    }
+    if (equipmentPanel) {
+        // You may need to update equipment panel with new hero reference
+        //equipmentPanel->SetHero(hero);
+    }
+
+    // Initialize game with selected character
+    StartNewGame();
+}
+
+void UIManager::OnCharacterSelectionBack() {
+    SetState(UIState::MAIN_MENU);
 }
 
 void UIManager::StartBattle(Hero *heroRef, Monster *monster) {
@@ -559,7 +648,7 @@ void UIManager::HandleMainMenuInput() {
     if (!mainMenu) return;
 
     if (mainMenu->IsStartGameSelected()) {
-        StartNewGame();
+        ShowCharacterSelection();
         mainMenu->ResetSelections();
     } else if (mainMenu->IsLoadGameSelected()) {
         LoadGame();
@@ -656,7 +745,6 @@ void UIManager::OnLevelUpConfirm(const int str, const int mana, const float heal
         hero->levelUp(str, mana, health);
     }
 
-    currentLevel++;
     LoadLevel(currentLevel);
 
     HideLevelUpPanel();

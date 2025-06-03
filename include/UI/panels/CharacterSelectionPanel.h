@@ -1,0 +1,111 @@
+//
+// Created by Lenovo on 3.6.2025 г.
+//
+
+#ifndef CHARACTERSELECTIONPANEL_H
+#define CHARACTERSELECTIONPANEL_H
+
+#include "raylib.h"
+#include "C:/DandD/include/Entities/Hero.h"
+#include "C:/DandD/include/UI/widgets/Button.h"
+#include <functional>
+#include <vector>
+#include <memory>
+
+struct RaceData {
+    Race race;
+    std::string name;
+    int strength;
+    int mana;
+    int health;
+    std::string description;
+};
+
+class CharacterSelectionPanel {
+private:
+    int screenWidth;
+    int screenHeight;
+
+    // Race data
+    std::vector<RaceData> races;
+
+    // UI Elements
+    std::vector<std::unique_ptr<Button> > raceButtons;
+    Button confirmButton;
+    Button backButton;
+
+    // Selection state
+    int selectedRaceIndex;
+    bool isVisible;
+    bool selectionConfirmed;
+
+    // Callbacks
+    std::function<void(Race)> onRaceSelected;
+    std::function<void()> onBack;
+
+    // Colors and styling
+    Color panelColor;
+    Color selectedColor;
+    Color textColor;
+    Color headerColor;
+    Font titleFont;
+    Font textFont;
+
+    // Layout constants
+    static constexpr int PANEL_PADDING = 40;
+    static constexpr int RACE_PANEL_WIDTH = 200;
+    static constexpr int RACE_PANEL_HEIGHT = 300;
+    static constexpr int RACE_PANEL_SPACING = 50;
+    static constexpr int BUTTON_HEIGHT = 50;
+
+public:
+    CharacterSelectionPanel(int screenWidth, int screenHeight);
+
+    ~CharacterSelectionPanel() = default;
+
+    // Core methods
+    void Initialize();
+
+    void Show();
+
+    void Hide();
+
+    void Update();
+
+    void Draw() const;
+
+    // State queries
+    bool IsVisible() const;
+
+    bool IsSelectionConfirmed() const;
+
+    Race GetSelectedRace() const;
+
+    // Event handlers
+    void SetOnRaceSelected(std::function<void(Race)> callback);
+
+    void SetOnBack(std::function<void()> callback);
+
+    // Reset state
+    void Reset();
+
+private:
+    // Helper methods
+    void InitializeRaceData();
+
+    void CreateRaceButtons();
+
+    void DrawRacePanel(const RaceData &raceData, int index, Rectangle bounds) const;
+
+    void DrawStatBar(const char *label, int value, int maxValue, Rectangle bounds, Color barColor) const;
+
+    Rectangle GetRacePanelBounds(int index) const;
+
+    void OnRaceButtonClicked(int raceIndex);
+
+    void OnConfirmClicked();
+
+    void OnBackClicked();
+};
+
+#endif //CHARACTERSELECTIONPANEL_H

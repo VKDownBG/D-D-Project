@@ -1,7 +1,7 @@
 #include "C:/DandD/include/Core/GameManager.h"
 
 // Constructor: Initializes game systems and window
-GameManager::GameManager(int screenWidth, int screenHeight)
+GameManager::GameManager(const int screenWidth, const int screenHeight)
     : screenWidth(screenWidth), screenHeight(screenHeight),
       isRunning(false), uiManager(nullptr), hero(nullptr),
       currentMap(nullptr), attackSystem(nullptr), currentMonster(nullptr) {
