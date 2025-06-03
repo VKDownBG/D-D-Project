@@ -114,8 +114,6 @@ public:
 
     bool IsPositionWall(const Position &pos) const;
 
-    void TriggerLevelCompletionCheck();
-
 private:
     int screenWidth;
     int screenHeight;

@@ -133,9 +133,20 @@ void GameManager::HandleCombatTrigger() {
             const Position mPos = monster.GetPosition();
             if (heroPos.x == mPos.x && heroPos.y == mPos.y) {
                 currentMonster = &monster;
-                uiManager->StartBattle(hero, currentMonster);
+                uiManager->StartBattle(hero, currentMonster); // Initiate battle
 
-                // Wait for battle to actually finish
+                if (uiManager->GetBattleResult() == BattleResult::PLAYER_WON) {
+                    const std::vector<Monster> &enemies = currentMap->getMonsters();
+                    const std::vector<Monster> monstersCopy = enemies;
+
+                    for (const auto &enemy: monstersCopy) {
+                        if (heroPos.x == enemy.GetPosition().x &&
+                            heroPos.y == enemy.GetPosition().y) {
+                            const auto &temp = currentMonster;
+                            currentMap->removeMonster(*temp);
+                        }
+                    }
+                }
                 return;
             }
         }
@@ -188,7 +199,9 @@ void GameManager::Update(const float deltaTime) const {
         uiManager->UpdateHUDStats(); // Refresh HUD after equipment change
     }
 
-    if (uiManager->GetCurrentState() == UIState::LEVEL_TRANSITION) {
+    // Level transition check
+    if (uiManager->IsLevelComplete() &&
+        uiManager->GetCurrentState() == UIState::GAMEPLAY) {
         TransitionToNextLevel();
     }
 }
@@ -227,10 +240,8 @@ void GameManager::LoadCurrentLevel() const {
 void GameManager::TransitionToNextLevel() const {
     if (!uiManager) return;
 
-    // Reset UI state before generating new level
-    uiManager->SetState(UIState::GAMEPLAY);
-
-    // Generate and load the new level
-    uiManager->GenerateNewLevel();
-    LoadCurrentLevel();
+    //TODO
+    uiManager->SetState(UIState::LEVEL_TRANSITION);
+    uiManager->GenerateNewLevel(); // Create next level
+    LoadCurrentLevel(); // Initialize new level
 }
