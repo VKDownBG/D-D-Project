@@ -197,7 +197,6 @@ void MainMenu::DrawBackground() const {
 }
 
 void MainMenu::DrawFrame() const {
-    // CRITICAL FIX: Always draw frame elements for visual structure
     DrawRectangleLinesEx({0, 0, static_cast<float>(screenWidth), static_cast<float>(screenHeight - 2)}, 2, stoneGray);
     DrawRectangleLinesEx({0, 1, static_cast<float>(screenWidth), static_cast<float>(screenHeight - 1)}, 3,
                          ColorAlpha(mysticBlue, 0.6f));
@@ -205,7 +204,7 @@ void MainMenu::DrawFrame() const {
                          ColorAlpha(mysticBlue, 0.3f));
 
     // Title frame
-    Rectangle titleFrameRect = {0, 0, static_cast<float>(screenWidth), 120};
+    const Rectangle titleFrameRect = {0, 0, static_cast<float>(screenWidth), 120};
     DrawRectangleRec(titleFrameRect, ColorAlpha(frameColor, 0.9f));
 
     DrawLine(0, 120, screenWidth, 120, stoneGray);
@@ -213,7 +212,7 @@ void MainMenu::DrawFrame() const {
     DrawLineEx({0, 119}, {static_cast<float>(screenWidth), 119}, 3, ColorAlpha(mysticBlue, 0.3f));
 
     // Content frame
-    Rectangle contentFrameRect = {screenWidth / 2.0f - 300, screenHeight / 2.0f - 200, 600, 400};
+    const Rectangle contentFrameRect = {screenWidth / 2.0f - 300, screenHeight / 2.0f - 200, 600, 410};
     DrawRectangleRec(contentFrameRect, ColorAlpha(darkPurple, 0.8f));
 
     DrawRectangleLinesEx(contentFrameRect, 1, stoneGray);
@@ -278,9 +277,9 @@ void MainMenu::DrawOptionsMenu() const {
 void MainMenu::DrawCreditsMenu() const {
     const int fontSize = 24;
     const int titleFontSize = 30;
-    float startX = screenWidth / 2.0f - 250;
-    float startY = screenHeight / 2.0f - 150;
-    float lineSpacing = 30;
+    const float startX = screenWidth / 2.0f - 250;
+    const float startY = screenHeight / 2.0f - 150;
+    const float lineSpacing = 30;
 
     DrawTextEx(menuFont, "CREDITS",
                {

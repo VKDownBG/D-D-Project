@@ -305,7 +305,7 @@ Rectangle ProgressBar::GetBounds() const {
     return bounds;
 }
 
-void ProgressBar::SetBounds(Rectangle newBounds) {
+void ProgressBar::SetBounds(const Rectangle newBounds) {
     bounds = newBounds;
 }
 

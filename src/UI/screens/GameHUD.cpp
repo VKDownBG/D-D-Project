@@ -18,7 +18,7 @@ GameHUD::GameHUD(const int _screenWidth, const int _screenHeight)
       backgroundLoaded(false) {
     frameColor = {40, 40, 70, 230};
     textColor = {220, 220, 250, 255};
-    darkPurple = {30, 20, 50, 255};
+    darkPurple = {30, 20, 50, 150};
     mysticBlue = {60, 80, 120, 255};
     deepRed = {150, 30, 50, 255};
     stoneGray = {80, 80, 90, 200};
@@ -61,7 +61,7 @@ GameHUD::GameHUD(const int _screenWidth, const int _screenHeight)
     });
     hpBar.EnablePulsatingEffect(true, 0.2f, 0.8f);
 
-    xpBar.SetColors({58, 181, 105, 70}, {35, 152, 80, 255}, {33, 49, 40, 255});
+    xpBar.SetColors({27, 27, 227, 70}, {35, 152, 80, 255}, {9, 9, 125, 255});
     xpBar.SetBorderThickness(3.0f);
     xpBar.SetRounding(0.2f);
     xpBar.ShowText(true);
@@ -248,7 +248,7 @@ void DrawStatWithGlow(const Font &font, const char *label, const char *value,
 
 void GameHUD::DrawStats() const {
     const Vector2 basePos = {
-        hpBar.GetBounds().x + 7,
+        hpBar.GetBounds().x + 10,
         hpBar.GetBounds().y + hpBar.GetBounds().height + 25
     };
 
@@ -257,7 +257,7 @@ void GameHUD::DrawStats() const {
                      basePos, textColor, {220, 220, 100, 255});
 
     // Mana
-    const Vector2 manaPos = {basePos.x + hpBar.GetBounds().width / 2 + 25, basePos.y};
+    const Vector2 manaPos = {basePos.x + hpBar.GetBounds().width / 2 + 55, basePos.y};
     DrawStatWithGlow(hudFont, "Mana:", std::to_string(hero->GetMana()).c_str(),
                      manaPos, textColor, {120, 180, 255, 255});
 }
@@ -291,7 +291,7 @@ void GameHUD::DrawLevelInfo() const {
     const float startY = 18;
     const float lineHeight = 30;
 
-    std::string levelText = "LEVEL " + std::to_string(currentLevel);
+    const std::string levelText = "LEVEL " + std::to_string(currentLevel);
 
     //TextDisplay
     DrawTextEx(hudFont, levelText.c_str(),
@@ -387,8 +387,8 @@ void GameHUD::DrawItemTooltip(const char *name, int level, const char *bonus, Re
     float textY = position.y + 15;
 
     for (const auto &line: nameLines) {
-        float textWidth = MeasureTextEx(hudFont, line.c_str(), 24, 1).x;
-        float textX = position.x + (tooltipWidth - textWidth) / 2.0f;
+        const float textWidth = MeasureTextEx(hudFont, line.c_str(), 24, 1).x;
+        const float textX = position.x + (tooltipWidth - textWidth) / 2.0f;
 
         DrawTextEx(hudFont, line.c_str(), {textX, textY}, 24, 1, textColor);
         DrawTextEx(hudFont, line.c_str(), {textX - 1.5f, textY + 1}, 24, 1,
@@ -420,7 +420,7 @@ Rectangle GameHUD::CalculateHPBarBounds() const {
 Rectangle GameHUD::CalculateXPBarBounds() const {
     return {
         hpBar.GetBounds().x + hpBar.GetBounds().width + 35,
-        hpBar.GetBounds().height / 2 + 25, 320, 25
+        hpBar.GetBounds().height / 2 + 35, 320, 25
     };
 }
 
