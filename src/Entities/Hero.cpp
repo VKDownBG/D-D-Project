@@ -32,7 +32,7 @@ Hero::Hero(const std::string &raceName, std::string heroName)
     // Race-specific attribute initialization
     switch (race) {
         case Race::Human:
-            this->strength = 3000;
+            this->strength = 30;
             this->mana = 20;
             break;
 

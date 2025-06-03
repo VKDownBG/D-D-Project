@@ -7,16 +7,16 @@
 #include <sstream>
 #include <vector>
 
-CharacterSelectionPanel::CharacterSelectionPanel(int screenWidth, int screenHeight)
+CharacterSelectionPanel::CharacterSelectionPanel(const int screenWidth, const int screenHeight)
     : screenWidth(screenWidth), screenHeight(screenHeight),
-      selectedRaceIndex(-1), isVisible(false), selectionConfirmed(false),
-      panelColor({40, 40, 60, 220}),
+      backgroundTexture({0}), selectedRaceIndex(-1), isVisible(false),
+      selectionConfirmed(false),
+      panelColor({0, 51, 102, 255}),
       selectedColor({100, 150, 200, 255}),
       textColor(WHITE),
       headerColor({220, 220, 255, 255}),
       titleFont(GetFontDefault()),
-      textFont(GetFontDefault()),
-      backgroundTexture({0}) {
+      textFont(GetFontDefault()) {
     InitializeRaceData();
     CreateRaceButtons();
     LoadBackgroundImage();
@@ -31,11 +31,10 @@ void CharacterSelectionPanel::Initialize() {
 
 void CharacterSelectionPanel::LoadBackgroundImage() {
     // Load background image - replace "PATH HERE" with actual path
-    backgroundTexture = LoadTexture("PATH HERE");
+    backgroundTexture = LoadTexture("C:/DandD/assets/background/walls4.png");
     // If texture failed to load, create a simple fallback
     if (backgroundTexture.id == 0) {
-        // Create a simple gradient or pattern as fallback
-        Image img = GenImageGradientRadial(screenWidth, screenHeight, 0.0f, BLACK, DARKBLUE);
+        const Image img = GenImageGradientRadial(screenWidth, screenHeight, 0.0f, BLACK, DARKBLUE);
         backgroundTexture = LoadTextureFromImage(img);
         UnloadImage(img);
     }
@@ -43,9 +42,15 @@ void CharacterSelectionPanel::LoadBackgroundImage() {
 
 void CharacterSelectionPanel::InitializeRaceData() {
     races = {
-        {Race::Human, "Human", 30, 20, 50, "Balanced warrior with good all-around stats. Versatile in combat and magic."},
+        {
+            Race::Human, "Human", 30, 20, 50,
+            "Balanced warrior with good all-around stats. Versatile in combat and magic."
+        },
         {Race::Mage, "Mage", 10, 40, 50, "Master of magic with high mana but low strength. Excels in spellcasting."},
-        {Race::Warrior, "Warrior", 40, 10, 50, "Mighty fighter with great strength but little magic. Dominates melee combat."}
+        {
+            Race::Warrior, "Warrior", 40, 10, 50,
+            "Mighty fighter with great strength but little magic. Dominates melee combat."
+        }
     };
 }
 
@@ -134,9 +139,9 @@ void CharacterSelectionPanel::Draw() const {
     // Draw background image
     if (backgroundTexture.id != 0) {
         // Scale background to fit screen while maintaining aspect ratio
-        float scaleX = (float)screenWidth / backgroundTexture.width;
-        float scaleY = (float)screenHeight / backgroundTexture.height;
-        float scale = (scaleX > scaleY) ? scaleX : scaleY; // Use larger scale to fill screen
+        const float scaleX = static_cast<float>(screenWidth) / backgroundTexture.width;
+        const float scaleY = static_cast<float>(screenHeight) / backgroundTexture.height;
+        const float scale = (scaleX > scaleY) ? scaleX : scaleY; // Use larger scale to fill screen
 
         Vector2 origin = {
             (screenWidth - backgroundTexture.width * scale) / 2,
@@ -183,11 +188,11 @@ void CharacterSelectionPanel::Draw() const {
     }
 }
 
-void CharacterSelectionPanel::DrawRacePanel(const RaceData &raceData, int index, Rectangle bounds) const {
+void CharacterSelectionPanel::DrawRacePanel(const RaceData &raceData, const int index, const Rectangle bounds) const {
     // Draw panel background
     Color bgColor = (selectedRaceIndex == index) ? selectedColor : panelColor;
-    DrawRectangleRounded(bounds, 12.0f, 12, bgColor);
-    DrawRectangleRoundedLines(bounds, 12.0f, 12, 2, WHITE);
+    DrawRectangleRounded(bounds, 7.0f, 12, bgColor);
+    DrawRectangleRoundedLines(bounds, 7, 12, 2, bgColor);
 
     float yOffset = bounds.y + 25;
     const float leftMargin = bounds.x + 20;
@@ -205,17 +210,17 @@ void CharacterSelectionPanel::DrawRacePanel(const RaceData &raceData, int index,
     yOffset += 30;
 
     // Strength bar
-    Rectangle strBounds = {leftMargin, yOffset, rightMargin - leftMargin, 25};
+    Rectangle strBounds = {leftMargin, yOffset + 20, rightMargin - leftMargin, 25};
     DrawStatBar("Strength", raceData.strength, 50, strBounds, {220, 80, 80, 255});
     yOffset += 50;
 
     // Mana bar
-    Rectangle manaBounds = {leftMargin, yOffset, rightMargin - leftMargin, 25};
+    Rectangle manaBounds = {leftMargin, yOffset + 20, rightMargin - leftMargin, 25};
     DrawStatBar("Mana", raceData.mana, 50, manaBounds, {80, 80, 220, 255});
     yOffset += 50;
 
     // Health bar
-    Rectangle healthBounds = {leftMargin, yOffset, rightMargin - leftMargin, 25};
+    Rectangle healthBounds = {leftMargin, yOffset + 20, rightMargin - leftMargin, 25};
     DrawStatBar("Health", raceData.health, 50, healthBounds, {80, 220, 80, 255});
     yOffset += 60;
 
@@ -253,12 +258,14 @@ void CharacterSelectionPanel::DrawRacePanel(const RaceData &raceData, int index,
 
     // Draw the wrapped text lines
     for (int i = 0; i < lines.size() && yOffset + (i * lineHeight) < bounds.y + bounds.height - 15; ++i) {
-        DrawTextEx(textFont, lines[i].c_str(), {leftMargin, yOffset + (i * lineHeight)}, descFontSize, 1, {200, 200, 200, 255});
+        DrawTextEx(textFont, lines[i].c_str(), {leftMargin, yOffset + (i * lineHeight)}, descFontSize, 1,
+                   {200, 200, 200, 255});
     }
 }
 
-void CharacterSelectionPanel::DrawStatBar(const char *label, int value, int maxValue, Rectangle bounds,
-                                          Color barColor) const {
+void CharacterSelectionPanel::DrawStatBar(const char *label, const int value, const int maxValue,
+                                          const Rectangle bounds,
+                                          const Color barColor) const {
     // Draw label
     DrawTextEx(textFont, label, {bounds.x, bounds.y - 22}, 16, 1, textColor);
 
@@ -282,7 +289,7 @@ void CharacterSelectionPanel::DrawStatBar(const char *label, int value, int maxV
 
 Rectangle CharacterSelectionPanel::GetRacePanelBounds(int index) const {
     // Made panels bigger - increased width and height
-    const int RACE_PANEL_WIDTH_LARGE = 320;  // Increased from original
+    const int RACE_PANEL_WIDTH_LARGE = 320; // Increased from original
     const int RACE_PANEL_HEIGHT_LARGE = 450; // Increased from original
     const int RACE_PANEL_SPACING_LARGE = 40; // Increased spacing
 

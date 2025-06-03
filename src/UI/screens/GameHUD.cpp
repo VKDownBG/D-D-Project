@@ -115,6 +115,7 @@ void GameHUD::SetTreasuresRemaining(const int count) {
 void GameHUD::LoadResources() {
     hudFont = LoadFont("C:/DandD/assets/fonts/.TTF");
 
+    hudTexture = LoadTexture("C:/DandD/assets/background/walls4");
     frameTexture = LoadTexture("C:/DandD/assets/border/testFrame.png");
     armorIconTexture = LoadTexture("C:/DandD/assets/equipment/testArmor.png");
     weaponIconTexture = LoadTexture("C:/DandD/assets/equipment/testWeapon.png");
