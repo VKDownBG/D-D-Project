@@ -46,12 +46,6 @@ public:
 
     void SetAnimationSpeed(float speed);
 
-    // void HandlePlayerAttack(AttackType attackType);
-
-    // void HandleMonsterAttack();
-
-    // void EndBattle(BattleResult result);
-
     void OnBattleEnd(BattleResult result);
 
 private:

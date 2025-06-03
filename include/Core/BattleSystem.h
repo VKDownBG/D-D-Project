@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BATTLESYSTEM_H
+#define BATTLESYSTEM_H
 
 #include "C:/DandD/include/Entities/Hero.h"
 #include "C:/DandD/include/Entities/Monster.h"
@@ -61,7 +62,7 @@ private:
 private:
     Monster *GetMonsterAtPosition(const Position &pos) const;
 
-    void HandleBattleEnd();
-
     bool DetermineFirstTurn() const;
 };
+
+#endif //BATTLESYSTEM_H

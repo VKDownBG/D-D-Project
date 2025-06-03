@@ -11,11 +11,11 @@
 UIManager::UIManager(const int _screenWidth, const int _screenHeight)
     : screenWidth(_screenWidth), screenHeight(_screenHeight),
       currentState(UIState::MAIN_MENU), previousState(UIState::MAIN_MENU),
-      mainMenu(nullptr), gameHUD(nullptr), characterSelectionPanel(nullptr), selectedRace(Race::Human),
-      battlePanel(nullptr), levelUpPanel(nullptr),
-      equipmentPanel(nullptr), mapRenderer(nullptr),
-      hero(nullptr), currentMap(nullptr), attackSystem(nullptr), currentBattleMonster(nullptr),
-      battleSystem(nullptr), defeatPanel(nullptr),
+      mainMenu(nullptr), gameHUD(nullptr), characterSelectionPanel(nullptr), battlePanel(nullptr),
+      levelUpPanel(nullptr), equipmentPanel(nullptr),
+      mapRenderer(nullptr), hero(nullptr),
+      currentMap(nullptr), attackSystem(nullptr), currentBattleMonster(nullptr), battleSystem(nullptr),
+      defeatPanel(nullptr), selectedRace(Race::Human),
       currentLevel(1), levelComplete(false), portalCreated(false),
       mapFilePath("C:/DandD/assets/maps/maps.txt"),
       transitionTimer(0.0f), isTransitioning(false) {
@@ -39,7 +39,7 @@ void UIManager::Initialize() {
 
     if (characterSelectionPanel) {
         characterSelectionPanel->Initialize();
-        characterSelectionPanel->SetOnRaceSelected([this](Race race) {
+        characterSelectionPanel->SetOnRaceSelected([this](const Race race) {
             OnRaceSelected(race);
         });
         characterSelectionPanel->SetOnBack([this]() {
@@ -342,11 +342,11 @@ void UIManager::ShowCharacterSelection() {
     }
 }
 
-void UIManager::SetSelectedRace(Race race) {
+void UIManager::SetSelectedRace(const Race race) {
     selectedRace = race;
 }
 
-void UIManager::OnRaceSelected(Race race) {
+void UIManager::OnRaceSelected(const Race race) {
     selectedRace = race;
 
     // Recreate hero with selected race
@@ -369,10 +369,13 @@ void UIManager::OnRaceSelected(Race race) {
     // Update UI components with new hero
     if (gameHUD) {
         gameHUD->Initialize(hero);
+        gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
+        gameHUD->SetArmor(&hero->GetInventory().GetArmor());
+        gameHUD->SetSpell(&hero->GetInventory().GetSpell());
     }
     if (equipmentPanel) {
-        // You may need to update equipment panel with new hero reference
-        //equipmentPanel->SetHero(hero);
+        delete equipmentPanel;
+        equipmentPanel = new EquipmentPanel(hero);
     }
 
     // Initialize game with selected character
@@ -651,7 +654,7 @@ void UIManager::HandleMainMenuInput() {
         ShowCharacterSelection();
         mainMenu->ResetSelections();
     } else if (mainMenu->IsLoadGameSelected()) {
-        LoadGame();
+        //LoadGame();
         mainMenu->ResetSelections();
     }
 }

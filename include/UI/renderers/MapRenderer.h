@@ -19,8 +19,6 @@ public:
 
     void LoadResources();
 
-    void LoadPortalTexture(const std::string &path);
-
     void Unload();
 
     void Update(float deltaTime);
