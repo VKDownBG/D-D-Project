@@ -217,7 +217,7 @@ void GameHUD::Unload() {
 }
 
 void GameHUD::DrawFrame() const {
-    Rectangle frameRect = {0, 0, static_cast<float>(screenWidth), 120};
+    const Rectangle frameRect = {0, 0, static_cast<float>(screenWidth), 120};
 
     DrawRectangleRec(frameRect, ColorAlpha(frameColor, 0.9f));
 
@@ -437,20 +437,20 @@ Rectangle GameHUD::CalculateArmorButtonBounds() const {
 }
 
 Rectangle GameHUD::CalculateWeaponButtonBounds() const {
-    Rectangle armorBounds = CalculateArmorButtonBounds();
+    const Rectangle weaponBounds = CalculateArmorButtonBounds();
     const float buttonSize = 60.0f;
     const float spacing = 20.0f;
 
     return {
-        armorBounds.x,
-        armorBounds.y + armorBounds.height + spacing,
+        weaponBounds.x,
+        weaponBounds.y + weaponBounds.height + spacing,
         buttonSize,
         buttonSize
     };
 }
 
 Rectangle GameHUD::CalculateSpellButtonBounds() const {
-    Rectangle spellBounds = CalculateWeaponButtonBounds();
+    const Rectangle spellBounds = CalculateWeaponButtonBounds();
     const float buttonSize = 60.0f;
     const float spacing = 20.0f;
 

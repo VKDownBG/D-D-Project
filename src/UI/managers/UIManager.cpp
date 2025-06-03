@@ -5,6 +5,7 @@
 #include "C:/DandD/include/UI/managers/UIManager.h"
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <queue>
 
 UIManager::UIManager(const int _screenWidth, const int _screenHeight)
@@ -285,9 +286,7 @@ void UIManager::ShowEquipmentChoice(const Item *newItem) {
 
     switch (newItem->GetType()) {
         case ItemType::ARMOR:
-            if (hero->hasArmor()) {
-                currentItem = &hero->GetInventory().GetArmor();
-            }
+            currentItem = &hero->GetInventory().GetArmor();
             break;
         case ItemType::WEAPON:
             currentItem = &hero->GetInventory().GetWeapon();
@@ -317,7 +316,7 @@ bool UIManager::IsEquipmentPanelVisible() const {
     return equipmentPanel && equipmentPanel->IsVisible();
 }
 
-void UIManager::ShowLevelUpPanel(int availablePoints) {
+void UIManager::ShowLevelUpPanel(const int availablePoints) {
     if (!levelUpPanel || !hero) return;
 
     levelUpPanel->SetHeroReference(hero);
@@ -558,7 +557,7 @@ void UIManager::InitializeGameplay() {
     const Weapon *weapon = &hero->GetInventory().GetWeapon();
     gameHUD->SetWeapon(weapon);
 
-    const Armor *armor = new Armor("Empty", 0, 0);
+    const Armor *armor = &hero->GetInventory().GetArmor();
     gameHUD->SetArmor(armor);
 
     const Spell *spell = &hero->GetInventory().GetSpell();
@@ -748,6 +747,7 @@ void UIManager::OnBattleEnd(const BattleResult result) {
     }
 
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
+        // currentMap->removeMonster(currentBattleMonster);
         UpdateHUDStats();
     }
 

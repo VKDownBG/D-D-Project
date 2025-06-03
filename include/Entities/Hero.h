@@ -31,8 +31,6 @@ public:
 
     void takeDamage(float damage) override;
 
-    bool hasArmor() const override;
-
     float GetWeaponBonus() const override;
 
     float GetSpellBonus() const override;

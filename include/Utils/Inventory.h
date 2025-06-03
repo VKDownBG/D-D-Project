@@ -8,7 +8,7 @@
 
 class Inventory {
 public:
-    Inventory(Weapon w, Spell s);
+    Inventory(Armor a, Weapon w, Spell s);
 
     bool newWeapon(const Weapon &replacement);
 
@@ -22,11 +22,9 @@ public:
 
     const Spell &GetSpell() const;
 
-    bool hasArmor() const;
-
 private:
+    Armor armor;
     Weapon weapon;
-    std::optional<Armor> armor;
     Spell spell;
 };
 

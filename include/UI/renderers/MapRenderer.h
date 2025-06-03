@@ -29,6 +29,8 @@ public:
 
     void SetVisibleRange(int cellsX, int cellsY);
 
+    void removeMonster(const Monster *monster);
+
 private:
     Map *map;
     Position *heroPosition;

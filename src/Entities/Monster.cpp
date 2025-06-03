@@ -16,6 +16,10 @@ Monster::Monster(const Position &pos, const int curlvl, const MonsterType _type)
     name = "Level " + std::to_string(level) + " dragon";
 }
 
+bool Monster::operator==(const Monster &other) const {
+    return pos == other.pos && type == other.type;
+}
+
 // Attribute accessors
 std::string Monster::GetName() const { return name; }
 int Monster::GetStrength() const { return strength; }
@@ -36,7 +40,6 @@ void Monster::takeDamage(const float damage) {
 }
 
 // Equipment flags (monsters always have basic equipment)
-bool Monster::hasArmor() const { return true; }
 bool Monster::hasWeapon() const { return true; }
 bool Monster::hasSpell() const { return true; }
 

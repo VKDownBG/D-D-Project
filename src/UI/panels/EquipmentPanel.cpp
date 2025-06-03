@@ -34,12 +34,10 @@ void EquipmentPanel::ShowComparison(const Item *newTreasure) {
 
     const Inventory &inventory = player->GetInventory();
     const Item *currentItem = nullptr;
-    std::string typeStr = newTreasure->GetTypeStr();
+    const std::string typeStr = newTreasure->GetTypeStr();
 
     if (typeStr == "ARMOR") {
-        if (inventory.hasArmor()) {
-            currentItem = &inventory.GetArmor();
-        }
+        currentItem = &inventory.GetArmor();
         itemType = ItemType::ARMOR;
     } else if (typeStr == "WEAPON") {
         currentItem = &inventory.GetWeapon();

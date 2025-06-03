@@ -79,23 +79,23 @@ void Button::SetTexture(const Texture2D &customTexture) {
     texture = customTexture;
 }
 
-void Button::SetColors(Color normal, Color hover, Color pressed, Color text) {
+void Button::SetColors(const Color normal, const Color hover, const Color pressed, const Color text) {
     normalColor = normal;
     hoverColor = hover;
     pressedColor = pressed;
     textColor = text;
 }
 
-void Button::SetBorder(Color color, int thickness) {
+void Button::SetBorder(const Color color, const int thickness) {
     borderColor = color;
     borderThickness = thickness;
 }
 
-void Button::SetRoundedCorners(float radius) {
+void Button::SetRoundedCorners(const float radius) {
     cornerRadius = radius;
 }
 
-void Button::EnableHoverAnimation(bool enable, float scale, float speed) {
+void Button::EnableHoverAnimation(const bool enable, const float scale, const float speed) {
     useHoverAnimation = enable;
     hoverScale = scale;
     animationSpeed = speed;

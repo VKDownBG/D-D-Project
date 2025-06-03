@@ -25,8 +25,6 @@ public:
 
     virtual void takeDamage(float damage) = 0;
 
-    virtual bool hasArmor() const = 0;
-
     virtual float GetWeaponBonus() const = 0;
 
     virtual float GetSpellBonus() const = 0;

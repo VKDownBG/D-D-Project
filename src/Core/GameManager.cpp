@@ -134,6 +134,19 @@ void GameManager::HandleCombatTrigger() {
             if (heroPos.x == mPos.x && heroPos.y == mPos.y) {
                 currentMonster = &monster;
                 uiManager->StartBattle(hero, currentMonster); // Initiate battle
+
+                if (uiManager->GetBattleResult() == BattleResult::PLAYER_WON) {
+                    const std::vector<Monster> &enemies = currentMap->getMonsters();
+                    const std::vector<Monster> monstersCopy = enemies;
+
+                    for (const auto &enemy: monstersCopy) {
+                        if (heroPos.x == enemy.GetPosition().x &&
+                            heroPos.y == enemy.GetPosition().y) {
+                            const auto &temp = currentMonster;
+                            currentMap->removeMonster(*temp);
+                        }
+                    }
+                }
                 return;
             }
         }
@@ -227,6 +240,8 @@ void GameManager::LoadCurrentLevel() const {
 void GameManager::TransitionToNextLevel() const {
     if (!uiManager) return;
 
+    //TODO
+    uiManager->SetState(UIState::LEVEL_TRANSITION);
     uiManager->GenerateNewLevel(); // Create next level
     LoadCurrentLevel(); // Initialize new level
 }

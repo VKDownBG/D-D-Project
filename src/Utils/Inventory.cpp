@@ -2,7 +2,7 @@
 
 #include "../../../include/Utils/Inventory.h"
 
-Inventory::Inventory(Weapon w, Spell s) : weapon(std::move(w)), spell(std::move(s)) {
+Inventory::Inventory(Armor a, Weapon w, Spell s) : armor(std::move(a)), weapon(std::move(w)), spell(std::move(s)) {
 }
 
 bool Inventory::newWeapon(const Weapon &replacement) {
@@ -21,7 +21,7 @@ bool Inventory::newSpell(const Spell &replacement) {
 }
 
 Armor const &Inventory::GetArmor() const {
-    return armor.value();
+    return armor;
 }
 
 Weapon const &Inventory::GetWeapon() const {
@@ -30,8 +30,4 @@ Weapon const &Inventory::GetWeapon() const {
 
 Spell const &Inventory::GetSpell() const {
     return spell;
-}
-
-bool Inventory::hasArmor() const {
-    return armor.has_value();
 }

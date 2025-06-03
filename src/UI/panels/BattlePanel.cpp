@@ -148,8 +148,8 @@ void BattlePanel::Draw() const {
 // Attack handlers now delegate to BattleSystem
 void BattlePanel::onWeaponAttack() {
     if (!waitingForInput || !isPlayerTurn || !battleSystem) return;
-    
-    double damage = battleSystem->PerformPlayerAttack(AttackType::WEAPON);
+
+    const double damage = battleSystem->PerformPlayerAttack(AttackType::WEAPON);
     
     const std::string attackName = player->GetInventory().GetWeapon().GetName();
     const std::string logEntry = player->GetName() + " used " + attackName + "! It dealt " + 

@@ -38,6 +38,8 @@ public:
 
     void removeTreasure(const Treasure &treasure);
 
+    void removeMonster(const Monster &monster);
+
     size_t GetTreasureCount() const;
 
     int GetCurrentLevel() const;

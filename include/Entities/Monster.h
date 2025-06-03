@@ -18,6 +18,8 @@ class Monster : public Entity {
 public:
     Monster(const Position &pos, int curlvl, MonsterType _type);
 
+    bool operator==(const Monster &other) const;
+
     std::string GetName() const override;
 
     int GetStrength() const override;
@@ -31,8 +33,6 @@ public:
     void SetHealth(float newHealth) override;
 
     void takeDamage(float damage) override;
-
-    bool hasArmor() const override;
 
     bool hasWeapon() const;
 

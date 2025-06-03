@@ -23,6 +23,7 @@ Hero::Hero(const std::string &raceName, std::string heroName)
       level(1),
       XP(0),
       inventory( // Default equipment
+          Armor("Empty", 0, 0),
           Weapon("Basic sword", 20, 1),
           Spell("Fireball", 20, 1)),
       startingPosition{0, 0},
@@ -93,11 +94,6 @@ void Hero::takeDamage(const float damage) {
     }
 }
 
-// Inventory state checks
-bool Hero::hasArmor() const {
-    return inventory.hasArmor();
-}
-
 // Equipment bonus calculations (converted to decimal percentages)
 float Hero::GetWeaponBonus() const {
     return inventory.GetWeapon().GetBonus() / 100;
@@ -108,10 +104,7 @@ float Hero::GetSpellBonus() const {
 }
 
 float Hero::GetArmorReduction() const {
-    if (hasArmor()) {
-        return inventory.GetArmor().GetBonus() / 100; // Damage reduction percentage
-    }
-    return 0.0f; // No armor = no reduction
+    return inventory.GetArmor().GetBonus() / 100; // Damage reduction percentage
 }
 
 bool Hero::isDefeated() const {

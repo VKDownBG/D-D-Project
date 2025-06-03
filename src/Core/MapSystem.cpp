@@ -191,6 +191,10 @@ void Map::removeTreasure(const Treasure &treasure) {
     treasures.erase(std::remove(treasures.begin(), treasures.end(), treasure), treasures.end());
 }
 
+void Map::removeMonster(const Monster &monster) {
+    enemies.erase(std::remove(enemies.begin(), enemies.end(), monster), enemies.end());
+}
+
 size_t Map::GetTreasureCount() const {
     return treasures.size();
 }

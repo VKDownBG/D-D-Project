@@ -79,7 +79,7 @@ double BattleSystem::PerformPlayerAttack(AttackType attackType) {
         return 0.0;
     }
 
-    double damage = attackSystem->performAttack(*currentPlayer, *currentMonster, attackType);
+    const double damage = attackSystem->performAttack(*currentPlayer, *currentMonster, attackType);
 
     // Check if monster is defeated
     if (currentMonster->isDefeated()) {
