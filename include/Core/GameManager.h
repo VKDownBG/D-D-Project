@@ -23,6 +23,8 @@ public:
 private:
     void InitializeSystems();
 
+    void HandleRaceSelection(Race race);
+
     void ProcessInput();
 
     void Update(float deltaTime) const;

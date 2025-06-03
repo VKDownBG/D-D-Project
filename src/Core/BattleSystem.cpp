@@ -42,7 +42,7 @@ void BattleSystem::StartBattle(Hero *player, Monster *monster) {
     battleActive = true;
 }
 
-void BattleSystem::EndBattle(BattleResult result) {
+void BattleSystem::EndBattle(const BattleResult result) {
     if (!battleActive) return;
 
     // Handle post-battle effects

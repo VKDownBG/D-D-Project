@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+
 enum class BattleState {
     HIDDEN,
     ANIMATING_IN,

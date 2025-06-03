@@ -131,6 +131,12 @@ public:
 
     bool IsPositionWall(const Position &pos) const;
 
+    void SetOnRaceSelected(std::function<void(Race)> callback) {
+        onRaceSelectedCallback = callback;
+    }
+
+    void ShowEquipmentChoice(std::unique_ptr<Item> newItem);
+
 private:
     int screenWidth;
     int screenHeight;
@@ -160,11 +166,16 @@ private:
     bool levelComplete;
     bool portalCreated;
 
+    std::unique_ptr<Item> pendingItem;
+
     std::string mapFilePath;
 
     float transitionTimer;
     bool isTransitioning;
 
+    std::function<void(Race)> onRaceSelectedCallback;
+
+private:
     void UpdateMainMenu(float deltaTime);
 
     void UpdateGameplay(float deltaTime);

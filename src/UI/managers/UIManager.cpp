@@ -8,6 +8,7 @@
 #include <map>
 #include <queue>
 
+// Constructor: Initializes UIManager with screen dimensions and sets initial UI states and flags.
 UIManager::UIManager(const int _screenWidth, const int _screenHeight)
     : screenWidth(_screenWidth), screenHeight(_screenHeight),
       currentState(UIState::MAIN_MENU), previousState(UIState::MAIN_MENU),
@@ -21,54 +22,68 @@ UIManager::UIManager(const int _screenWidth, const int _screenHeight)
       transitionTimer(0.0f), isTransitioning(false) {
 }
 
+// Destructor: Cleans up dynamically allocated UI components.
 UIManager::~UIManager() {
     Unload();
 }
 
+// Initializes various UI panels and sets up their callbacks.
 void UIManager::Initialize() {
+    // Create new instances of UI panels if they don't exist.
     if (!mainMenu) mainMenu = new MainMenu(screenWidth, screenHeight);
     if (!gameHUD) gameHUD = new GameHUD(screenWidth, screenHeight);
     if (!battlePanel) battlePanel = new BattlePanel();
     if (!levelUpPanel) levelUpPanel = new LevelUpPanel();
-    if (!equipmentPanel) equipmentPanel = new EquipmentPanel(hero);
+    if (!equipmentPanel) equipmentPanel = new EquipmentPanel(hero); // Note: hero might be nullptr here initially
     if (!mapRenderer) mapRenderer = new MapRenderer(screenWidth, screenHeight);
     if (!battleSystem) battleSystem = new BattleSystem();
     if (!characterSelectionPanel) characterSelectionPanel = new CharacterSelectionPanel(screenWidth, screenHeight);
 
+    // Initialize the main menu.
     if (mainMenu) mainMenu->Initialize();
 
+    // Set up callbacks for character selection panel.
     if (characterSelectionPanel) {
         characterSelectionPanel->Initialize();
         characterSelectionPanel->SetOnRaceSelected([this](const Race race) {
+            // Lambda for race selection
             OnRaceSelected(race);
         });
         characterSelectionPanel->SetOnBack([this]() {
+            // Lambda for back button
             OnCharacterSelectionBack();
         });
     }
 
+    // Set up battle end callback for battle system.
     if (battleSystem) {
         battleSystem->SetBattleEndCallback([this](const BattleResult result) {
+            // Lambda for battle end
             OnBattleEnd(result);
         });
     }
 
+    // Set up callbacks for level up panel.
     if (levelUpPanel) {
         levelUpPanel->SetOnConfirm([this](const int str, const int mana, const int health) {
+            // Lambda for level up confirm
             OnLevelUpConfirm(str, mana, health);
         });
         levelUpPanel->SetOnCancel([this]() {
+            // Lambda for level up cancel
             OnLevelUpCancel();
         });
     }
 }
 
+// Loads resources required by various UI components.
 void UIManager::LoadResources() const {
     if (mainMenu) mainMenu->LoadResources();
     if (gameHUD) gameHUD->LoadResources();
     if (mapRenderer) mapRenderer->LoadResources();
 }
 
+// Unloads resources and deletes dynamically allocated UI components to prevent memory leaks.
 void UIManager::Unload() {
     if (mainMenu) {
         mainMenu->Unload();
@@ -105,6 +120,7 @@ void UIManager::Unload() {
     defeatPanel = nullptr;
 }
 
+// Updates the current UI state based on the game's progression.
 void UIManager::Update(const float deltaTime) {
     switch (currentState) {
         case UIState::MAIN_MENU:
@@ -133,11 +149,13 @@ void UIManager::Update(const float deltaTime) {
             break;
     }
 
+    // Update animation timers for all active portals.
     for (auto &portal: portals) {
         portal.animationTime += deltaTime;
     }
 }
 
+// Draws the UI components based on the current UI state.
 void UIManager::Draw() const {
     switch (currentState) {
         case UIState::MAIN_MENU:
@@ -167,11 +185,13 @@ void UIManager::Draw() const {
     }
 }
 
+// Sets the current UI state and handles transitions between states.
 void UIManager::SetState(const UIState newState) {
     if (currentState != newState) {
-        previousState = currentState;
-        currentState = newState;
+        previousState = currentState; // Store the previous state
+        currentState = newState; // Set the new state
 
+        // Handle specific actions on state change.
         if (newState == UIState::GAMEPLAY && previousState == UIState::MAIN_MENU) {
             InitializeGameplay();
         } else if (newState == UIState::MAIN_MENU && previousState == UIState::GAMEPLAY) {
@@ -180,80 +200,87 @@ void UIManager::SetState(const UIState newState) {
     }
 }
 
+// Returns the current UI state.
 UIState UIManager::GetCurrentState() const {
     return currentState;
 }
 
+// Returns the current game level.
 int UIManager::GetCurrentLevel() const {
     return currentLevel;
 }
 
+// Starts a new game, resetting level to 1 and loading the initial map.
 void UIManager::StartNewGame() {
-    currentLevel = 1;
+    currentLevel = 1; // Reset level to 1
     if (currentMap) {
-        LoadLevel(currentLevel);
+        LoadLevel(currentLevel); // Load the first level
 
         if (hero) {
-            const Position startPos = currentMap->getStartPos();
-            hero->setPosition(startPos);
+            const Position startPos = currentMap->getStartPos(); // Get starting position from map
+            hero->setPosition(startPos); // Set hero's position
         }
 
-        UpdateMapRenderer();
-        UpdateHUDStats();
+        UpdateMapRenderer(); // Update map rendering
+        UpdateHUDStats(); // Update HUD information
     }
-    SetState(UIState::GAMEPLAY);
+    SetState(UIState::GAMEPLAY); // Transition to gameplay state
 }
 
+// Placeholder for loading a saved game (currently just starts a new game).
 void UIManager::LoadGame() {
     StartNewGame();
 }
 
+// Checks if the game should quit based on main menu or defeat panel selections.
 bool UIManager::ShouldQuit() const {
     return (mainMenu && mainMenu->IsQuitSelected()) ||
            (defeatPanel && defeatPanel->ShouldQuit());
 }
 
+// Loads a specific game level from a file.
 void UIManager::LoadLevel(const int levelNumber) {
-    if (!currentMap) return;
+    if (!currentMap) return; // Ensure map object exists
 
     try {
-        const std::string levelTag = "[LEVEL_" + std::to_string(levelNumber) + "]";
-        currentMap->loadFromFile(mapFilePath, levelTag);
-        currentLevel = levelNumber;
-        ResetLevelState();
+        const std::string levelTag = "[LEVEL_" + std::to_string(levelNumber) + "]"; // Construct level tag
+        currentMap->loadFromFile(mapFilePath, levelTag); // Load map from file
+        currentLevel = levelNumber; // Update current level number
+        ResetLevelState(); // Reset level-specific flags (e.g., portal status)
 
         if (mapRenderer && hero) {
-            mapRenderer->Initialize(currentMap, hero->GetPosition());
+            mapRenderer->Initialize(currentMap, hero->GetPosition()); // Re-initialize map renderer
         }
 
-        UpdateHUDStats();
+        UpdateHUDStats(); // Update HUD information
     } catch (const std::exception &e) {
-        std::cerr << "Failed to load level: %s" << e.what();
+        std::cerr << "Failed to load level: %s" << e.what(); // Log error if level loading fails
     }
 }
 
+// Generates and loads the next level.
 void UIManager::GenerateNewLevel() {
     LoadLevel(currentLevel + 1);
 }
 
+// Checks if the current level is complete based on defeated monsters.
 void UIManager::CheckLevelCompletion() {
-    if (levelComplete || portalCreated || !currentMap) return;
+    if (levelComplete || portalCreated || !currentMap) return; // Don't re-check if already complete or portal exists
 
-    // Get a safe copy of the monsters vector
-    const auto monsters = currentMap->getMonstersConst();
+    const auto monsters = currentMap->getMonstersConst(); // Get current monsters on the map
 
     if (monsters.empty()) {
-        levelComplete = true;
-        CreatePortal();
+        levelComplete = true; // If no monsters, level is complete
+        CreatePortal(); // Create portal for next level
         return;
     }
 
-    // Count alive monsters by type
     int aliveNormalMonsters = 0;
     int aliveBosses = 0;
     int totalNormalMonsters = 0;
     int totalBosses = 0;
 
+    // Count alive and total monsters/bosses.
     for (const auto &monster: monsters) {
         if (monster.GetType() == MonsterType::BOSS) {
             totalBosses++;
@@ -268,26 +295,28 @@ void UIManager::CheckLevelCompletion() {
         }
     }
 
-    // Level complete if either all normal monsters are dead OR all bosses are dead
     const bool normalMonstersCleared = (totalNormalMonsters > 0 && aliveNormalMonsters == 0);
     const bool bossesCleared = (totalBosses > 0 && aliveBosses == 0);
 
+    // Level is complete if all normal monsters or all bosses are cleared.
     if (normalMonstersCleared || bossesCleared) {
         levelComplete = true;
         CreatePortal();
     }
 }
 
+// Returns whether the current level is complete.
 bool UIManager::IsLevelComplete() const {
     return levelComplete;
 }
 
+// Creates a portal to the next level near the hero's position.
 void UIManager::CreatePortal() {
-    if (portalCreated || !hero || !currentMap) return;
+    if (portalCreated || !hero || !currentMap) return; // Don't create if already exists or no hero/map
 
-    const Position playerPos = hero->getCurrentPosition();
+    const Position playerPos = hero->getCurrentPosition(); // Get hero's current position
 
-    // Check adjacent positions for walls (prioritize: right, down, left, up)
+    // Define directions to check for a wall to place the portal.
     const Position directions[] = {
         {playerPos.x + 1, playerPos.y}, // Right
         {playerPos.x, playerPos.y + 1}, // Down
@@ -295,38 +324,41 @@ void UIManager::CreatePortal() {
         {playerPos.x, playerPos.y - 1} // Up
     };
 
-    // Find first adjacent wall and place portal there
+    // Iterate through directions to find a suitable wall cell.
     for (const auto &dir: directions) {
         if (currentMap->getCell(dir) == '#') {
+            // If cell is a wall
             Portal portal;
             portal.position = dir;
             portal.isActive = true;
             portal.animationTime = 0.0f;
-            portals.push_back(portal);
-            portalCreated = true;
+            portals.push_back(portal); // Add portal to list
+            portalCreated = true; // Mark portal as created
 
-            // Replace wall with floor in the map so hero can step on it
+            // Replace wall with floor in the map so hero can step on it.
             currentMap->setCell(dir, '.');
 
-            // Update the map renderer to reflect the change
+            // Update the map renderer to reflect the change.
             UpdateMapRenderer();
-            break;
+            break; // Exit loop once portal is created
         }
     }
 }
 
+// Updates the character selection panel.
 void UIManager::UpdateCharacterSelection(const float deltaTime) {
     if (characterSelectionPanel) {
         characterSelectionPanel->Update();
 
         if (characterSelectionPanel->IsSelectionConfirmed()) {
-            SetState(UIState::GAMEPLAY);
+            SetState(UIState::GAMEPLAY); // Transition to gameplay after selection
         }
     }
 }
 
+// Draws the character selection panel with a background.
 void UIManager::DrawCharacterSelection() const {
-    // Draw a background
+    // Draw a dark background.
     DrawRectangle(0, 0, screenWidth, screenHeight, {20, 10, 5, 255});
 
     if (characterSelectionPanel) {
@@ -334,22 +366,25 @@ void UIManager::DrawCharacterSelection() const {
     }
 }
 
+// Shows the character selection panel and sets the UI state.
 void UIManager::ShowCharacterSelection() {
     if (characterSelectionPanel) {
-        characterSelectionPanel->Reset();
-        characterSelectionPanel->Show();
-        SetState(UIState::CHARACTER_SELECTION);
+        characterSelectionPanel->Reset(); // Reset panel state
+        characterSelectionPanel->Show(); // Make panel visible
+        SetState(UIState::CHARACTER_SELECTION); // Change UI state
     }
 }
 
+// Sets the currently selected race.
 void UIManager::SetSelectedRace(const Race race) {
     selectedRace = race;
 }
 
+// Callback when a race is selected in the character creation.
 void UIManager::OnRaceSelected(const Race race) {
     selectedRace = race;
 
-    // Recreate hero with selected race
+    // Recreate hero with selected race.
     if (hero) {
         delete hero;
     }
@@ -364,9 +399,9 @@ void UIManager::OnRaceSelected(const Race race) {
             break;
     }
 
-    hero = new Hero(raceName, "Player");
+    hero = new Hero(raceName, "Player"); // Create a new hero object
 
-    // Update UI components with new hero
+    // Update UI components with the new hero.
     if (gameHUD) {
         gameHUD->Initialize(hero);
         gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
@@ -374,59 +409,63 @@ void UIManager::OnRaceSelected(const Race race) {
         gameHUD->SetSpell(&hero->GetInventory().GetSpell());
     }
     if (equipmentPanel) {
-        delete equipmentPanel;
+        delete equipmentPanel; // Recreate equipment panel with new hero reference
         equipmentPanel = new EquipmentPanel(hero);
     }
 
-    // Initialize game with selected character
+    // Initialize game with selected character.
     StartNewGame();
 }
 
+// Callback when the back button is pressed in character selection.
 void UIManager::OnCharacterSelectionBack() {
-    SetState(UIState::MAIN_MENU);
+    SetState(UIState::MAIN_MENU); // Return to main menu
 }
 
+// Initiates a battle between the hero and a monster.
 void UIManager::StartBattle(Hero *heroRef, Monster *monster) {
     if (!battlePanel || !heroRef || !monster || !battleSystem) return;
 
-    currentBattleMonster = monster;
+    currentBattleMonster = monster; // Store reference to current monster
 
-    // Start battle in BattleSystem
-    battleSystem->StartBattle(heroRef, monster);
+    battleSystem->StartBattle(heroRef, monster); // Start battle logic
+    battlePanel->StartBattle(heroRef, monster, battleSystem); // Initialize battle panel
 
-    // Start battle UI in BattlePanel
-    battlePanel->StartBattle(heroRef, monster, battleSystem);
-
-    SetState(UIState::BATTLE);
+    SetState(UIState::BATTLE); // Transition to battle state
 }
 
+// Ends the current battle and transitions back to gameplay.
 void UIManager::EndBattle() {
     if (battlePanel) {
-        const BattleResult result = battlePanel->GetResult();
-        OnBattleEnd(result);
+        const BattleResult result = battlePanel->GetResult(); // Get battle outcome
+        OnBattleEnd(result); // Handle battle end result
     }
 
-    currentBattleMonster = nullptr;
-    SetState(UIState::GAMEPLAY);
+    currentBattleMonster = nullptr; // Clear current monster reference
+    SetState(UIState::GAMEPLAY); // Return to gameplay
 }
 
+// Checks if a battle is currently active.
 bool UIManager::IsBattleActive() const {
     return battleSystem && battleSystem->IsBattleActive();
 }
 
+// Returns the result of the battle.
 BattleResult UIManager::GetBattleResult() const {
     return battlePanel ? battlePanel->GetResult() : BattleResult::ONGOING;
 }
 
+// Shows the equipment choice panel for a new item.
 void UIManager::ShowEquipmentChoice(const Item *newItem) {
     if (!equipmentPanel || !hero || !newItem) return;
 
     if (currentState == UIState::EQUIPMENT_SELECTION) {
-        return;
+        return; // Avoid showing multiple equipment panels
     }
 
     const Item *currentItem = nullptr;
 
+    // Determine the current item of the same type in hero's inventory.
     switch (newItem->GetType()) {
         case ItemType::ARMOR:
             currentItem = &hero->GetInventory().GetArmor();
@@ -441,10 +480,11 @@ void UIManager::ShowEquipmentChoice(const Item *newItem) {
             break;
     }
 
-    equipmentPanel->Show(currentItem, newItem);
-    SetState(UIState::EQUIPMENT_SELECTION);
+    equipmentPanel->Show(currentItem, newItem); // Display comparison
+    SetState(UIState::EQUIPMENT_SELECTION); // Change UI state
 }
 
+// Hides the equipment panel and returns to gameplay.
 void UIManager::HideEquipmentPanel() {
     if (equipmentPanel) {
         equipmentPanel->Hide();
@@ -455,19 +495,22 @@ void UIManager::HideEquipmentPanel() {
     }
 }
 
+// Checks if the equipment panel is currently visible.
 bool UIManager::IsEquipmentPanelVisible() const {
     return equipmentPanel && equipmentPanel->IsVisible();
 }
 
+// Shows the level up panel with available points.
 void UIManager::ShowLevelUpPanel(const int availablePoints) {
     if (!levelUpPanel || !hero) return;
 
-    levelUpPanel->SetHeroReference(hero);
-    levelUpPanel->SetMaxPoints(availablePoints);
-    levelUpPanel->Show();
-    SetState(UIState::LEVEL_UP);
+    levelUpPanel->SetHeroReference(hero); // Set hero for the panel
+    levelUpPanel->SetMaxPoints(availablePoints); // Set points for allocation
+    levelUpPanel->Show(); // Make panel visible
+    SetState(UIState::LEVEL_UP); // Change UI state
 }
 
+// Hides the level up panel and returns to gameplay.
 void UIManager::HideLevelUpPanel() {
     if (levelUpPanel) {
         levelUpPanel->Hide();
@@ -475,10 +518,12 @@ void UIManager::HideLevelUpPanel() {
     SetState(UIState::GAMEPLAY);
 }
 
+// Checks if the level up panel is currently visible.
 bool UIManager::IsLevelUpPanelVisible() const {
     return levelUpPanel && levelUpPanel->IsVisible();
 }
 
+// Sets the hero reference for the UIManager and initializes GameHUD.
 void UIManager::SetHero(Hero *heroRef) {
     hero = heroRef;
     if (gameHUD) {
@@ -486,10 +531,12 @@ void UIManager::SetHero(Hero *heroRef) {
     }
 }
 
+// Returns the hero reference.
 Hero *UIManager::GetHero() const {
     return hero;
 }
 
+// Sets the current map and passes it to the BattleSystem.
 void UIManager::SetCurrentMap(Map *map) {
     currentMap = map;
     if (battleSystem) {
@@ -497,35 +544,41 @@ void UIManager::SetCurrentMap(Map *map) {
     }
 }
 
+// Returns the current map reference.
 Map *UIManager::GetCurrentMap() const {
     return currentMap;
 }
 
+// Sets the attack system reference.
 void UIManager::SetAttackSystem(Attack *attack) {
     attackSystem = attack;
 }
 
+// Updates the stats displayed in the GameHUD.
 void UIManager::UpdateHUDStats() {
     if (!gameHUD || !currentMap) return;
 
-    gameHUD->SetLevel(currentLevel);
-    gameHUD->SetMonstersRemaining(currentMap->GetMonsterCount());
-    gameHUD->SetTreasuresRemaining(currentMap->GetTreasureCount());
+    gameHUD->SetLevel(currentLevel); // Update current level
+    gameHUD->SetMonstersRemaining(currentMap->GetMonsterCount()); // Update remaining monsters
+    gameHUD->SetTreasuresRemaining(currentMap->GetTreasureCount()); // Update remaining treasures
 }
 
+// Updates the map renderer with the current map and hero position.
 void UIManager::UpdateMapRenderer() {
     if (mapRenderer && currentMap && hero) {
         mapRenderer->Initialize(currentMap, hero->GetPosition());
     }
 }
 
+// Updates the main menu logic.
 void UIManager::UpdateMainMenu(const float deltaTime) {
     if (mainMenu) {
         mainMenu->Update(deltaTime);
-        HandleMainMenuInput();
+        HandleMainMenuInput(); // Handle main menu selections
     }
 }
 
+// Updates gameplay elements like HUD and map, and checks for portal interaction.
 void UIManager::UpdateGameplay(const float deltaTime) {
     if (gameHUD) {
         gameHUD->Update(deltaTime);
@@ -534,36 +587,41 @@ void UIManager::UpdateGameplay(const float deltaTime) {
         mapRenderer->Update(deltaTime);
     }
 
-    HandlePortalInteraction();
+    HandlePortalInteraction(); // Check if hero is on a portal
 }
 
+// Updates the battle panel logic.
 void UIManager::UpdateBattle(const float deltaTime) {
     if (battlePanel) {
         battlePanel->Update();
 
         if (battlePanel->isFinished()) {
-            EndBattle();
+            EndBattle(); // End battle if finished
         }
     }
 }
 
+// Updates the level up panel logic.
 void UIManager::UpdateLevelUp(float deltaTime) {
     if (levelUpPanel) {
         levelUpPanel->Update();
     }
 }
 
+// Updates the equipment selection panel logic.
 void UIManager::UpdateEquipmentSelection(float deltaTime) {
     if (equipmentPanel) {
         equipmentPanel->Update();
     }
 }
 
+// Manages the level transition animation and state.
 void UIManager::UpdateLevelTransition(const float deltaTime) {
-    transitionTimer += deltaTime;
+    transitionTimer += deltaTime; // Increment transition timer
 
+    // After a delay, show the level up panel and reset transition.
     if (transitionTimer >= 2.0f) {
-        const int levelUpPoints = 30;
+        const int levelUpPoints = 30; // Hardcoded level up points
         ShowLevelUpPanel(levelUpPoints);
 
         transitionTimer = 0.0f;
@@ -571,21 +629,22 @@ void UIManager::UpdateLevelTransition(const float deltaTime) {
     }
 }
 
+// Updates the defeat panel logic.
 void UIManager::UpdateDefeat(const float deltaTime) {
     if (defeatPanel) {
         defeatPanel->Update();
     }
 }
 
+// Draws the main menu.
 void UIManager::DrawMainMenu() const {
     if (mainMenu) {
         mainMenu->Draw();
     }
 }
 
+// Draws gameplay elements: HUD, map, and portals.
 void UIManager::DrawGameplay() const {
-    //DrawRectangle(0, 0, screenWidth, screenHeight, {20, 10, 5, 255});
-
     if (gameHUD) {
         gameHUD->Draw();
     }
@@ -593,72 +652,82 @@ void UIManager::DrawGameplay() const {
         mapRenderer->Draw();
     }
 
-    DrawPortals();
+    DrawPortals(); // Draw active portals
 }
 
+// Draws battle elements on top of gameplay elements.
 void UIManager::DrawBattle() const {
-    DrawGameplay();
+    DrawGameplay(); // Draw background gameplay
 
     if (battlePanel) {
         battlePanel->Draw();
     }
 }
 
+// Draws level up panel on top of gameplay elements.
 void UIManager::DrawLevelUp() const {
-    DrawGameplay();
+    DrawGameplay(); // Draw background gameplay
 
     if (levelUpPanel) {
         levelUpPanel->Draw();
     }
 }
 
+// Draws equipment selection panel on top of gameplay elements.
 void UIManager::DrawEquipmentSelection() const {
-    DrawGameplay();
+    DrawGameplay(); // Draw background gameplay
 
     if (equipmentPanel) {
         equipmentPanel->Draw();
     }
 }
 
+// Draws a visual transition effect when moving between levels.
 void UIManager::DrawLevelTransition() const {
-    DrawGameplay();
+    DrawGameplay(); // Draw background gameplay
 
+    // Calculate alpha for a fading effect.
     const float alpha = std::sin(transitionTimer * 2.0f) * 127 + 128;
+    // Draw a semi-transparent black rectangle over the screen.
     DrawRectangle(0, 0, screenWidth, screenHeight, {0, 0, 0, static_cast<unsigned char>(alpha)});
 
+    // Draw "Level Complete!" text.
     const std::string text = "Level Complete! Preparing next level...";
     const int textWidth = MeasureText(text.c_str(), 40);
     DrawText(text.c_str(), (screenWidth - textWidth) / 2, screenHeight / 2 - 20, 40, WHITE);
 }
 
+// Draws the defeat panel.
 void UIManager::DrawDefeat() const {
     if (defeatPanel) {
         defeatPanel->Draw();
     }
 }
 
+// Draws active portals on the map.
 void UIManager::DrawPortals() const {
     if (!mapRenderer || portals.empty()) return;
 
     for (const auto &portal: portals) {
         if (portal.isActive) {
-            mapRenderer->DrawPortal(portal.position, portal.animationTime);
+            mapRenderer->DrawPortal(portal.position, portal.animationTime); // Draw each portal with its animation
         }
     }
 }
 
+// Handles input events for the main menu.
 void UIManager::HandleMainMenuInput() {
     if (!mainMenu) return;
 
     if (mainMenu->IsStartGameSelected()) {
-        ShowCharacterSelection();
-        mainMenu->ResetSelections();
+        ShowCharacterSelection(); // Transition to character selection
+        mainMenu->ResetSelections(); // Reset main menu choices
     } else if (mainMenu->IsLoadGameSelected()) {
-        //LoadGame();
-        mainMenu->ResetSelections();
+        mainMenu->ResetSelections(); // Reset main menu choices (Load Game not fully implemented yet)
     }
 }
 
+// Checks if the hero is interacting with an active portal.
 void UIManager::HandlePortalInteraction() {
     if (!hero || portals.empty()) return;
 
@@ -667,19 +736,21 @@ void UIManager::HandlePortalInteraction() {
         if (portal.isActive &&
             heroPos.x == portal.position.x &&
             heroPos.y == portal.position.y) {
-            // Automatically transition when stepping on portal
-            isTransitioning = true;
-            SetState(UIState::LEVEL_TRANSITION);
+            // If hero is on a portal
+            isTransitioning = true; // Start level transition
+            SetState(UIState::LEVEL_TRANSITION); // Change UI state to transition
             break;
         }
     }
 }
 
+// Initializes gameplay elements after a new game or load game.
 void UIManager::InitializeGameplay() {
     if (gameHUD && hero) {
-        gameHUD->Initialize(hero);
+        gameHUD->Initialize(hero); // Initialize HUD with hero stats
     }
 
+    // Set weapon, armor, and spell for HUD display.
     const Weapon *weapon = &hero->GetInventory().GetWeapon();
     gameHUD->SetWeapon(weapon);
 
@@ -689,17 +760,19 @@ void UIManager::InitializeGameplay() {
     const Spell *spell = &hero->GetInventory().GetSpell();
     gameHUD->SetSpell(spell);
 
-    UpdateMapRenderer();
-    UpdateHUDStats();
+    UpdateMapRenderer(); // Ensure map is rendered correctly
+    UpdateHUDStats(); // Update HUD stats
 }
 
+// Cleans up gameplay-specific states (e.g., clear portals, reset flags).
 void UIManager::CleanupGameplay() {
-    portals.clear();
-    portalCreated = false;
-    levelComplete = false;
-    currentBattleMonster = nullptr;
+    portals.clear(); // Clear all portals
+    portalCreated = false; // Reset portal creation flag
+    levelComplete = false; // Reset level completion flag
+    currentBattleMonster = nullptr; // Clear current battle monster
 }
 
+// Resets level-specific flags and timers.
 void UIManager::ResetLevelState() {
     portals.clear();
     portalCreated = false;
@@ -708,92 +781,127 @@ void UIManager::ResetLevelState() {
     isTransitioning = false;
 }
 
+// Checks if all normal monsters on the current map are defeated.
 bool UIManager::AreAllMonstersDefeated() const {
     if (!currentMap) return false;
 
     const auto &monsters = currentMap->getMonstersConst();
 
-    // Check if there are any regular monsters that are not defeated
     for (const Monster &monster: monsters) {
         if (monster.GetType() == MonsterType::MONSTER && !monster.isDefeated()) {
-            return false;
+            return false; // Found an alive normal monster
         }
     }
 
-    return true;
+    return true; // All normal monsters are defeated
 }
 
+// Checks if all bosses on the current map are defeated.
 bool UIManager::AreAllBossesDefeated() const {
     if (!currentMap) return false;
 
     const auto &monsters = currentMap->getMonsters();
 
-    // Check if there are any bosses that are not defeated
     for (const Monster &monster: monsters) {
         if (monster.GetType() == MonsterType::BOSS && !monster.isDefeated()) {
-            return false;
+            return false; // Found an alive boss
         }
     }
 
-    return true; // All bosses are either defeated or don't exist
+    return true; // All bosses are defeated
 }
 
+// Checks if a given position on the map is a wall.
 bool UIManager::IsPositionWall(const Position &pos) const {
     if (!currentMap) return false;
     return currentMap->getCell(pos) == '#';
 }
 
+// Callback when level up stats are confirmed.
 void UIManager::OnLevelUpConfirm(const int str, const int mana, const float health) {
     if (hero) {
-        hero->levelUp(str, mana, health);
+        hero->levelUp(str, mana, health); // Apply stat increases to hero
     }
 
-    LoadLevel(currentLevel);
+    LoadLevel(currentLevel); // Reload current level (to refresh map if needed, e.g., monster positions)
 
-    HideLevelUpPanel();
+    HideLevelUpPanel(); // Hide the panel
 }
 
+// Callback when level up is canceled.
 void UIManager::OnLevelUpCancel() {
-    HideLevelUpPanel();
+    HideLevelUpPanel(); // Hide the panel
 }
 
+// Callback for keeping current equipment (no change).
 void UIManager::OnEquipmentKeep() {
     HideEquipmentPanel();
 }
 
+// Callback for equipping new item.
 void UIManager::OnEquipmentEquip() {
     HideEquipmentPanel();
 }
 
+// Callback for handling the end of a battle.
 void UIManager::OnBattleEnd(const BattleResult result) {
-    // Notify the battle panel about the end result
+    // Notify the battle panel about the end result.
     if (battlePanel) {
         battlePanel->OnBattleEnd(result);
     }
 
+    // If player won, update map (remove defeated monster) and check for level completion.
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
-        currentMap->setCell(*hero->GetPosition(), '.');
-        UpdateMapRenderer();
-        UpdateHUDStats();
+        currentMap->setCell(*hero->GetPosition(), '.'); // Replace monster cell with floor
+        UpdateMapRenderer(); // Refresh map rendering
+        UpdateHUDStats(); // Update HUD stats (e.g., monster count)
 
-        CheckLevelCompletion();
+        CheckLevelCompletion(); // Check if level is now complete
     }
 
+    // If player lost, show defeat panel and change UI state.
     if (result == BattleResult::PLAYER_LOST) {
         if (!defeatPanel) {
-            defeatPanel = new DefeatPanel();
+            defeatPanel = new DefeatPanel(); // Create defeat panel if it doesn't exist
         }
-        defeatPanel->Show();
-        SetState(UIState::DEFEAT);
+        defeatPanel->Show(); // Show defeat panel
+        SetState(UIState::DEFEAT); // Transition to defeat state
     }
 }
 
+// Checks if a battle should start at the new position.
 bool UIManager::CheckForBattle(const Position &newPosition) {
     if (!hero || !battleSystem) return false;
 
+    // Use battle system to determine if a battle should occur.
     if (battleSystem->CheckForBattle(hero, newPosition)) {
-        SetState(UIState::BATTLE);
+        SetState(UIState::BATTLE); // If battle starts, transition to battle state
         return true;
     }
     return false;
+}
+
+void UIManager::ShowEquipmentChoice(std::unique_ptr<Item> newItem) {
+    if (!equipmentPanel || !hero || !newItem) return;
+
+    // Store the item with ownership
+    pendingItem = std::move(newItem);
+
+    const Item *currentItem = nullptr;
+    switch (pendingItem->GetType()) {
+        case ItemType::ARMOR:
+            currentItem = &hero->GetInventory().GetArmor();
+            break;
+        case ItemType::WEAPON:
+            currentItem = &hero->GetInventory().GetWeapon();
+            break;
+        case ItemType::SPELL:
+            currentItem = &hero->GetInventory().GetSpell();
+            break;
+        default:
+            break;
+    }
+
+    equipmentPanel->Show(currentItem, pendingItem.get());
+    SetState(UIState::EQUIPMENT_SELECTION);
 }
