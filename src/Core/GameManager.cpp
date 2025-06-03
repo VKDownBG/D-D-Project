@@ -1,5 +1,6 @@
 #include "C:/DandD/include/Core/GameManager.h"
 
+// Constructor: Initializes game systems and window
 GameManager::GameManager(int screenWidth, int screenHeight)
     : screenWidth(screenWidth), screenHeight(screenHeight),
       isRunning(false), uiManager(nullptr), hero(nullptr),
@@ -7,6 +8,7 @@ GameManager::GameManager(int screenWidth, int screenHeight)
     InitializeSystems();
 }
 
+// Destructor: Cleans up allocated resources
 GameManager::~GameManager() {
     delete attackSystem;
     delete currentMap;
@@ -14,14 +16,17 @@ GameManager::~GameManager() {
     delete uiManager;
 }
 
+// Initializes game subsystems and resources
 void GameManager::InitializeSystems() {
     InitWindow(screenWidth, screenHeight, "Dungeons and Dragons");
     SetTargetFPS(60);
 
+    // Core game objects
     hero = new Hero("Human", "Player");
     currentMap = new Map();
     attackSystem = new Attack();
 
+    // UI system setup
     uiManager = new UIManager(screenWidth, screenHeight);
     uiManager->SetHero(hero);
     uiManager->SetCurrentMap(currentMap);
@@ -32,6 +37,7 @@ void GameManager::InitializeSystems() {
     LoadCurrentLevel();
 }
 
+// Main game loop
 void GameManager::RunGame() {
     isRunning = true;
 
@@ -41,6 +47,7 @@ void GameManager::RunGame() {
         Update(deltaTime);
         Render();
 
+        // Check for quit request from UI
         if (uiManager->ShouldQuit()) {
             isRunning = false;
         }
@@ -48,40 +55,50 @@ void GameManager::RunGame() {
     CloseWindow();
 }
 
+// Routes input handling based on current game state
 void GameManager::ProcessInput() {
-    if (uiManager->IsEquipmentPanelVisible() ||
-        uiManager->IsLevelUpPanelVisible() ||
-        uiManager->GetCurrentState() != UIState::GAMEPLAY) {
-        return;
-    }
+    // Determine if UI panels are blocking movement
+    const bool shouldBlockMovement = uiManager->IsEquipmentPanelVisible() ||
+                                     uiManager->IsLevelUpPanelVisible() ||
+                                     uiManager->GetCurrentState() != UIState::GAMEPLAY;
 
+    // State-specific input handling
     switch (uiManager->GetCurrentState()) {
         case UIState::MAIN_MENU:
+            // Handled internally by UIManager
             break;
 
         case UIState::GAMEPLAY:
-            HandleMovement();
-            HandleCombatTrigger();
-            HandleTreasureCollection();
+            // Only process game actions if no blocking UI
+            if (!shouldBlockMovement) {
+                HandleMovement();
+                HandleCombatTrigger();
+                HandleTreasureCollection();
+            }
             break;
 
         case UIState::BATTLE:
+            // BattlePanel handles its own input
             break;
 
         case UIState::LEVEL_UP:
         case UIState::EQUIPMENT_SELECTION:
+            // Panels handle their own input in UIManager
             break;
+
         default:
             break;
     }
 }
 
+// Handles player movement input
 void GameManager::HandleMovement() {
     if (!hero || !currentMap) return;
 
     Position newPos = hero->getCurrentPosition();
     bool moved = false;
 
+    // Process directional input
     if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) {
         newPos.x++;
         moved = true;
@@ -96,82 +113,94 @@ void GameManager::HandleMovement() {
         moved = true;
     }
 
+    // Validate and apply movement
     if (moved && currentMap->isPassable(newPos.x, newPos.y)) {
         hero->setPosition(newPos);
-        uiManager->UpdateMapRenderer();
+        uiManager->UpdateMapRenderer(); // Refresh map display
     }
 }
 
+// Checks for combat encounters at hero's position
 void GameManager::HandleCombatTrigger() {
     if (!hero || !currentMap) return;
 
     const Position heroPos = hero->getCurrentPosition();
     auto &monsters = currentMap->getMonsters();
 
+    // Check for undefeated monsters at hero's position
     for (auto &monster: monsters) {
         if (!monster.isDefeated()) {
             const Position mPos = monster.GetPosition();
-            const int distX = abs(heroPos.x - mPos.x);
-            const int distY = abs(heroPos.y - mPos.y);
-
-            if (distX <= 1 && distY <= 1 && (distX != 0 || distY != 0)) {
+            if (heroPos.x == mPos.x && heroPos.y == mPos.y) {
                 currentMonster = &monster;
-                uiManager->StartBattle(hero, currentMonster);
+                uiManager->StartBattle(hero, currentMonster); // Initiate battle
                 return;
             }
         }
     }
 }
 
+// Handles treasure collection mechanics
 void GameManager::HandleTreasureCollection() {
+    // Validate preconditions
     if (!hero || !currentMap || uiManager->GetCurrentState() != UIState::GAMEPLAY)
         return;
 
-    const Position heroPos = hero->getCurrentPosition();
-    const std::vector<Treasure> &treasures = currentMap->getTreasures();
-
+    // Skip if equipment panel is open
     if (uiManager->IsEquipmentPanelVisible()) {
         return;
     }
 
-    const std::vector<Treasure> treasuresCopy = treasures;
+    const Position heroPos = hero->getCurrentPosition();
+    const std::vector<Treasure> &treasures = currentMap->getTreasures();
+    const std::vector<Treasure> treasuresCopy = treasures; // Safe iteration copy
 
+    // Check for treasure at hero's position
     for (const auto &treasure: treasuresCopy) {
         if (heroPos.x == treasure.getPosition().x &&
             heroPos.y == treasure.getPosition().y) {
             currentMap->removeTreasure(treasure);
 
+            // Generate and show reward item
             Item *newItem = ItemGenerator::generateRandomItem(currentMap->GetCurrentLevel());
             if (newItem) {
-                uiManager->ShowEquipmentChoice(newItem);
-                uiManager->UpdateMapRenderer();
-                uiManager->UpdateHUDStats();
+                uiManager->ShowEquipmentChoice(newItem); // Show item selection UI
+                uiManager->UpdateMapRenderer(); // Remove treasure from map
                 return;
             }
         }
     }
 }
 
+// Updates game state and UI
 void GameManager::Update(const float deltaTime) const {
     if (!uiManager) return;
 
     uiManager->Update(deltaTime);
 
+    // Cleanup after equipment selection
+    if (uiManager->GetCurrentState() == UIState::EQUIPMENT_SELECTION &&
+        !uiManager->IsEquipmentPanelVisible()) {
+        uiManager->SetState(UIState::GAMEPLAY);
+        uiManager->UpdateMapRenderer();
+        uiManager->UpdateHUDStats(); // Refresh HUD after equipment change
+    }
+
+    // Level transition check
     if (uiManager->IsLevelComplete() &&
         uiManager->GetCurrentState() == UIState::GAMEPLAY) {
         TransitionToNextLevel();
     }
 }
 
+// Main rendering pass
 void GameManager::Render() const {
     BeginDrawing();
-    // ClearBackground(BLACK);
-
-    uiManager->Draw();
-
+    uiManager->Draw(); // Delegate drawing to UI system
     EndDrawing();
 }
 
+// Places hero at level starting position
 void GameManager::PositionHeroAtStart() const {
     if (!currentMap || !hero) return;
 
@@ -179,22 +208,25 @@ void GameManager::PositionHeroAtStart() const {
     hero->setPosition(startPos);
 
     if (uiManager) {
-        uiManager->UpdateMapRenderer();
+        uiManager->UpdateMapRenderer(); // Sync map display
     }
 }
 
+// Loads current level data
 void GameManager::LoadCurrentLevel() const {
     if (!uiManager) return;
 
+    // Ensure valid level number
     int levelToLoad = (uiManager->GetCurrentLevel() > 0) ? uiManager->GetCurrentLevel() : 1;
     uiManager->LoadLevel(uiManager->GetCurrentLevel());
     PositionHeroAtStart();
-    uiManager->UpdateHUDStats();
+    uiManager->UpdateHUDStats(); // Refresh player stats display
 }
 
+// Handles level progression
 void GameManager::TransitionToNextLevel() const {
     if (!uiManager) return;
 
-    uiManager->GenerateNewLevel();
-    LoadCurrentLevel();
+    uiManager->GenerateNewLevel(); // Create next level
+    LoadCurrentLevel(); // Initialize new level
 }

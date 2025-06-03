@@ -298,7 +298,7 @@ void BattlePanel::onFlee() {
     EndBattle(BattleResult::PLAYER_WON);
 }
 
-void BattlePanel::HandlePlayerAttack(AttackType attackType) {
+void BattlePanel::HandlePlayerAttack(const AttackType attackType) {
     if (!player || !currentMonster || !battleSystem) return;
 
     waitingForInput = false;

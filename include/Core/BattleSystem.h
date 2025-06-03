@@ -43,10 +43,10 @@ public:
 
     void SetBattleEndCallback(const std::function<void(BattleResult)> &callback);
 
+    bool determineFirstTurn() const;
+
 private:
     void HandleBattleEnd();
-
-    bool determineFirstTurn() const;
 
     Monster *GetMonsterAtPosition(const Position &pos) const;
 
