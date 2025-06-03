@@ -248,8 +248,8 @@ void UIManager::CheckLevelCompletion() {
     }
 
     // Level complete if either all normal monsters are dead OR all bosses are dead
-    bool normalMonstersCleared = (totalNormalMonsters > 0 && aliveNormalMonsters == 0);
-    bool bossesCleared = (totalBosses > 0 && aliveBosses == 0);
+    const bool normalMonstersCleared = (totalNormalMonsters > 0 && aliveNormalMonsters == 0);
+    const bool bossesCleared = (totalBosses > 0 && aliveBosses == 0);
 
     if (normalMonstersCleared || bossesCleared) {
         levelComplete = true;
@@ -266,37 +266,9 @@ void UIManager::CreatePortal() {
 
     const Position playerPos = hero->getCurrentPosition();
 
-    // Look for passable positions at least 3 tiles away from the hero
-    std::vector<Position> candidates;
-
-    for (int dx = -5; dx <= 5; dx++) {
-        for (int dy = -5; dy <= 5; dy++) {
-            // Skip positions too close to the hero
-            if (abs(dx) < 3 && abs(dy) < 3) continue;
-
-            const Position checkPos(playerPos.x + dx, playerPos.y + dy);
-
-            // Check if this position is passable
-            if (currentMap->isPassable(checkPos.x, checkPos.y)) {
-                candidates.push_back(checkPos);
-            }
-        }
+    if (playerPos.x + 1 == '#' || playerPos.y + 1 == '#' || playerPos.x - 1 == '#' || playerPos.y - 1 == '#') {
+        DrawPortals();
     }
-
-    // Use the first valid candidate or fallback to a position away from player
-    Position portalPos(0, 0);
-    if (!candidates.empty()) {
-        portalPos = candidates[0];
-    } else {
-        // Fallback: place portal 4 tiles to the right of player
-        portalPos = Position(playerPos.x + 4, playerPos.y);
-        if (!currentMap->isPassable(portalPos.x, portalPos.y)) {
-            portalPos = Position(playerPos.x, playerPos.y + 4);
-        }
-    }
-
-    portals.emplace_back(portalPos);
-    portalCreated = true;
 }
 
 void UIManager::StartBattle(Hero *heroRef, Monster *monster) {
