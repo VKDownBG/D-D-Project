@@ -22,9 +22,13 @@ bool Monster::operator==(const Monster &other) const {
 
 // Attribute accessors
 std::string Monster::GetName() const { return name; }
+
 int Monster::GetStrength() const { return strength; }
+
 int Monster::GetMana() const { return mana; }
+
 float Monster::GetHealth() const { return health; }
+
 float Monster::GetMaxHealth() const { return maxHealth; }
 
 // Health management with clamping
@@ -41,10 +45,12 @@ void Monster::takeDamage(const float damage) {
 
 // Equipment flags (monsters always have basic equipment)
 bool Monster::hasWeapon() const { return true; }
+
 bool Monster::hasSpell() const { return true; }
 
 // Equipment bonuses (monsters use fixed values)
 float Monster::GetWeaponBonus() const { return 0.0f; }
+
 float Monster::GetSpellBonus() const { return 0.0f; }
 
 // Armor damage reduction (scaled by level)
@@ -56,9 +62,16 @@ bool Monster::isDefeated() const { return health <= 0; }
 
 // Position management
 void Monster::setPosition(const Position &pos) { this->pos = pos; }
+
 Position Monster::GetPosition() const { return pos; }
 
 // Special getters
 int Monster::GetDamageResist() const { return scaleArmor; }
+
 int Monster::GetLevel() const { return level; }
+
 MonsterType Monster::GetType() const { return type; }
+
+void Monster::setDefeated(const bool check) {
+    health = check ? 0 : maxHealth;
+}

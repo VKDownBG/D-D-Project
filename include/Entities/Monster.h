@@ -56,6 +56,8 @@ public:
 
     MonsterType GetType() const;
 
+    void setDefeated(bool check);
+
 private:
     int strength;
     int mana;

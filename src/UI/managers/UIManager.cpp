@@ -219,7 +219,7 @@ void UIManager::CheckLevelCompletion() {
     if (levelComplete || portalCreated || !currentMap) return;
 
     // Get a safe copy of the monsters vector
-    const auto monsters = currentMap->getMonstersConst(); // Use the const version
+    const auto monsters = currentMap->getMonstersConst();
 
     if (monsters.empty()) {
         levelComplete = true;
@@ -286,6 +286,9 @@ void UIManager::CreatePortal() {
 
             // Replace wall with floor in the map so hero can step on it
             currentMap->setCell(dir, '.');
+
+            // Update the map renderer to reflect the change
+            UpdateMapRenderer();
             break;
         }
     }
@@ -572,12 +575,10 @@ void UIManager::HandlePortalInteraction() {
         if (portal.isActive &&
             heroPos.x == portal.position.x &&
             heroPos.y == portal.position.y) {
-            // Exact position match
-            if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
-                isTransitioning = true;
-                SetState(UIState::LEVEL_TRANSITION);
-                break;
-            }
+            // Automatically transition when stepping on portal
+            isTransitioning = true;
+            SetState(UIState::LEVEL_TRANSITION);
+            break;
         }
     }
 }
@@ -680,9 +681,11 @@ void UIManager::OnBattleEnd(const BattleResult result) {
     }
 
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
-        mapRenderer->removeMonster(currentBattleMonster);
+        currentMap->setCell(*hero->GetPosition(), '.');
         UpdateMapRenderer();
         UpdateHUDStats();
+
+        CheckLevelCompletion();
     }
 
     if (result == BattleResult::PLAYER_LOST) {

@@ -133,19 +133,12 @@ void GameManager::HandleCombatTrigger() {
             const Position mPos = monster.GetPosition();
             if (heroPos.x == mPos.x && heroPos.y == mPos.y) {
                 currentMonster = &monster;
-                uiManager->StartBattle(hero, currentMonster); // Initiate battle
+                uiManager->StartBattle(hero, currentMonster);
 
                 if (uiManager->GetBattleResult() == BattleResult::PLAYER_WON) {
-                    const std::vector<Monster> &enemies = currentMap->getMonsters();
-                    const std::vector<Monster> monstersCopy = enemies;
-
-                    for (const auto &enemy: monstersCopy) {
-                        if (heroPos.x == enemy.GetPosition().x &&
-                            heroPos.y == enemy.GetPosition().y) {
-                            const auto &temp = currentMonster;
-                            currentMap->removeMonster(*temp);
-                        }
-                    }
+                    // Mark the monster as defeated instead of removing it immediately
+                    currentMonster->setDefeated(true);
+                    uiManager->UpdateMapRenderer();
                 }
                 return;
             }

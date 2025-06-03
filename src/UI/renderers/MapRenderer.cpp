@@ -258,9 +258,9 @@ void MapRenderer::DrawEntities() const {
         }
     }
 
-    // Draw monsters
+    // Draw monsters (only if not defeated)
     for (const auto &monster: map->getMonsters()) {
-        if (IsInVisibleArea(monster.GetPosition().x, monster.GetPosition().y)) {
+        if (!monster.isDefeated() && IsInVisibleArea(monster.GetPosition().x, monster.GetPosition().y)) {
             const Vector2 screenPos = WorldToScreen(monster.GetPosition().x, monster.GetPosition().y);
             const Rectangle destRect = {screenPos.x, screenPos.y, cellSize, cellSize};
 
@@ -360,16 +360,18 @@ void MapRenderer::DrawMinimapEntities(const Vector2 pos, float size, const float
         DrawRectangle(x, y, cellSize, cellSize, {220, 180, 50, 255});
     }
 
-    // Draw monsters
+    // Draw monsters (only if not defeated)
     for (const auto &monster: map->getMonsters()) {
-        const float x = offset.x + monster.GetPosition().x * cellSize;
-        const float y = offset.y + monster.GetPosition().y * cellSize;
+        if (!monster.isDefeated()) {
+            const float x = offset.x + monster.GetPosition().x * cellSize;
+            const float y = offset.y + monster.GetPosition().y * cellSize;
 
-        const Color color = (monster.GetType() == MonsterType::BOSS)
-                                ? Color{200, 50, 50, 255}
-                                : Color{180, 80, 80, 255};
+            const Color color = (monster.GetType() == MonsterType::BOSS)
+                                    ? Color{200, 50, 50, 255}
+            : Color{180, 80, 80, 255};
 
-        DrawRectangle(x, y, cellSize, cellSize, color);
+            DrawRectangle(x, y, cellSize, cellSize, color);
+        }
     }
 
     if (heroPosition) {
