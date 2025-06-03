@@ -223,7 +223,6 @@ void UIManager::CheckLevelCompletion() {
 
     if (monstersDefeated || bossesDefeated) {
         levelComplete = true;
-        CreatePortal();
     }
 }
 
@@ -235,12 +234,29 @@ void UIManager::CreatePortal() {
     if (portalCreated || !hero || !currentMap) return;
 
     const Position playerPos = hero->getCurrentPosition();
-    const Position portalPos = FindNearestWallPosition(playerPos);
 
-    if (portalPos.x != -1 && portalPos.y != -1) {
-        portals.emplace_back(portalPos);
-        portalCreated = true;
+    // Try to find a good position for the portal (away from player)
+    Position portalPos = playerPos;
+
+    // Try positions in expanding circles around the player
+    bool foundPosition = false;
+    for (int radius = 3; radius <= 8 && !foundPosition; radius++) {
+        for (int dx = -radius; dx <= radius && !foundPosition; dx++) {
+            for (int dy = -radius; dy <= radius && !foundPosition; dy++) {
+                if (abs(dx) != radius && abs(dy) != radius) continue; // Only check perimeter
+
+                Position checkPos(playerPos.x + dx, playerPos.y + dy);
+                if (currentMap->isPassable(checkPos.x, checkPos.y)) {
+                    portalPos = checkPos;
+                    foundPosition = true;
+                }
+            }
+        }
     }
+
+    portals.emplace_back(portalPos);
+    portals.back().isActive = true; // Make sure portal is active
+    portalCreated = true;
 }
 
 void UIManager::StartBattle(Hero *heroRef, Monster *monster) {
@@ -391,8 +407,18 @@ void UIManager::UpdateGameplay(const float deltaTime) {
         mapRenderer->Update(deltaTime);
     }
 
-    CheckLevelCompletion();
     HandlePortalInteraction();
+}
+
+void UIManager::TriggerLevelCompletionCheck() {
+    if (levelComplete || portalCreated) return;
+
+    const bool monstersDefeated = AreAllMonstersDefeated();
+
+    if (monstersDefeated) {
+        levelComplete = true;
+        CreatePortal();
+    }
 }
 
 void UIManager::UpdateBattle(const float deltaTime) {
@@ -421,12 +447,9 @@ void UIManager::UpdateLevelTransition(const float deltaTime) {
     transitionTimer += deltaTime;
 
     if (transitionTimer >= 2.0f) {
+        // Show level up panel but don't change level yet - GameManager will handle it
         const int levelUpPoints = 30;
         ShowLevelUpPanel(levelUpPoints);
-
-        currentLevel++;
-        LoadLevel(currentLevel);
-
 
         transitionTimer = 0.0f;
         isTransitioning = false;
@@ -513,13 +536,14 @@ void UIManager::DrawPortals() const {
             screenPos.x += cellSize / 2;
             screenPos.y += cellSize / 2;
 
-            const float pulseScale = 1.0f + std::sin(portal.animationTime * 4.0f) * 0.2f;
-            const float alpha = (std::sin(portal.animationTime * 3.0f) + 1.0f) * 127;
-            const Color portalColor = {100, 200, 255, static_cast<unsigned char>(alpha)};
+            const float pulseScale = 1.0f + std::sin(portal.animationTime * 4.0f) * 0.3f;
 
-            // Draw portal at corrected position
-            DrawCircleV(screenPos, 20.0f * pulseScale, portalColor);
-            DrawCircleLinesV(screenPos, 25.0f * pulseScale, {150, 255, 255, 200});
+            // Make the portal much more visible
+            DrawCircleV(screenPos, 30.0f * pulseScale, BLUE);
+            DrawCircleLinesV(screenPos, 35.0f * pulseScale, {72, 209, 204, 255});
+
+            // Add text indicator
+            DrawText("PORTAL", screenPos.x - 30, screenPos.y - 50, 20, WHITE);
         }
     }
 }
@@ -540,14 +564,14 @@ void UIManager::HandlePortalInteraction() {
     if (!hero || portals.empty()) return;
 
     const Position &heroPos = hero->getCurrentPosition();
+
     for (const auto &portal: portals) {
         if (portal.isActive &&
-            abs(heroPos.x - portal.position.x) <= 1 &&
-            abs(heroPos.y - portal.position.y) <= 1) {
+            heroPos.x == portal.position.x &&
+            heroPos.y == portal.position.y) {
             if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
-                isTransitioning = true;
                 SetState(UIState::LEVEL_TRANSITION);
-                break;
+                return;
             }
         }
     }
@@ -591,9 +615,12 @@ bool UIManager::AreAllMonstersDefeated() const {
 
     const auto &monsters = currentMap->getMonstersConst();
 
-    // Check if there are any regular monsters that are not defeated
+    // If there are no monsters at all, level is complete
+    if (monsters.empty()) return true;
+
+    // Check if all monsters are defeated
     for (const Monster &monster: monsters) {
-        if (monster.GetType() == MonsterType::MONSTER && !monster.isDefeated()) {
+        if (!monster.isDefeated()) {
             return false;
         }
     }
@@ -616,119 +643,18 @@ bool UIManager::AreAllBossesDefeated() const {
     return true; // All bosses are either defeated or don't exist
 }
 
-Position UIManager::FindNearestWallPosition(const Position &playerPos) const {
-    if (!currentMap) return Position(-1, -1);
-
-    std::vector<Position> adjacentWalls = GetAdjacentWallPositions(playerPos);
-    if (!adjacentWalls.empty()) {
-        return adjacentWalls[0];
-    }
-
-    return GetClosestReachableWall(playerPos);
-}
-
-std::vector<Position> UIManager::GetAdjacentWallPositions(const Position &playerPos) const {
-    std::vector<Position> wallPositions;
-
-    for (int dx = -1; dx <= 1; dx++) {
-        for (int dy = -1; dy <= 1; dy++) {
-            if (dx == 0 && dy == 0) continue;
-
-            const Position checkPos(playerPos.x + dx, playerPos.y + dy);
-            if (IsPositionWall(checkPos) && IsValidPortalPosition(checkPos)) {
-                wallPositions.push_back(checkPos);
-            }
-        }
-    }
-
-    return wallPositions;
-}
-
-Position UIManager::GetClosestReachableWall(const Position &playerPos) const {
-    if (!currentMap) return Position(-1, -1);
-
-    Position closestWall(-1, -1);
-    float minDistance = std::numeric_limits<float>::max();
-
-    for (int radius = 2; radius <= 10; radius++) {
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                if (abs(dx) != radius && abs(dy) != radius) continue;
-
-                const Position checkPos(playerPos.x + dx, playerPos.y + dy);
-
-                if (IsPositionWall(checkPos) &&
-                    IsValidPortalPosition(checkPos) &&
-                    IsPositionReachable(playerPos, checkPos)) {
-                    const float distance = sqrt(dx * dx + dy * dy);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestWall = checkPos;
-                    }
-                }
-            }
-        }
-        if (closestWall.x != -1) break;
-    }
-
-    return closestWall;
-}
-
 bool UIManager::IsPositionWall(const Position &pos) const {
     if (!currentMap) return false;
     return currentMap->getCell(pos) == '#';
 }
 
-bool UIManager::IsValidPortalPosition(const Position &pos) const {
-    if (!currentMap) return false;
-
-    if (pos.x < 0 || pos.y < 0 ||
-        pos.x >= static_cast<int>(currentMap->getWidth()) ||
-        pos.y >= static_cast<int>(currentMap->getHeight())) {
-        return false;
-    }
-
-    return IsPositionWall(pos);
-}
-
-bool UIManager::IsPositionReachable(const Position &from, const Position &to) const {
-    if (!currentMap) return false;
-
-    const int dx = abs(to.x - from.x);
-    const int dy = abs(to.y - from.y);
-    int x = from.x;
-    int y = from.y;
-
-    const int stepX = (from.x < to.x) ? 1 : -1;
-    const int stepY = (from.y < to.y) ? 1 : -1;
-
-    int err = dx - dy;
-
-    while (true) {
-        if (x == to.x && y == to.y) break;
-
-        if ((x != to.x || y != to.y) && !currentMap->isPassable(x, y)) {
-            return false;
-        }
-
-        const int e2 = 2 * err;
-        if (e2 > -dy) {
-            err -= dy;
-            x += stepX;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y += stepY;
-        }
-    }
-
-    return true;
-}
-
-void UIManager::OnLevelUpConfirm(const int str, const int mana, const int health) {
+void UIManager::OnLevelUpConfirm(const int str, const int mana, const float health) {
     if (hero) {
         hero->levelUp(str, mana, health);
     }
+
+    LoadLevel(currentLevel);
+
     HideLevelUpPanel();
 }
 
@@ -751,9 +677,16 @@ void UIManager::OnBattleEnd(const BattleResult result) {
     }
 
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
+        // Remove the defeated monster
+        currentMap->removeMonster(*currentBattleMonster);
+
+        // Update displays
         mapRenderer->removeMonster(currentBattleMonster);
         UpdateMapRenderer();
         UpdateHUDStats();
+
+        // Check if level is complete after removing monster
+        TriggerLevelCompletionCheck();
     }
 
     if (result == BattleResult::PLAYER_LOST) {

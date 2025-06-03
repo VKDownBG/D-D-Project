@@ -112,11 +112,9 @@ public:
 
     void UpdateMapRenderer();
 
-    Position FindNearestWallPosition(const Position &playerPos) const;
-
     bool IsPositionWall(const Position &pos) const;
 
-    bool IsPositionReachable(const Position &from, const Position &to) const;
+    void TriggerLevelCompletionCheck();
 
 private:
     int screenWidth;
@@ -152,6 +150,7 @@ private:
     void UpdateMainMenu(float deltaTime);
 
     void UpdateGameplay(float deltaTime);
+
 
     void UpdateBattle(float deltaTime);
 
@@ -193,13 +192,7 @@ private:
 
     bool AreAllBossesDefeated() const;
 
-    std::vector<Position> GetAdjacentWallPositions(const Position &playerPos) const;
-
-    Position GetClosestReachableWall(const Position &playerPos) const;
-
-    bool IsValidPortalPosition(const Position &pos) const;
-
-    void OnLevelUpConfirm(int str, int mana, int health);
+    void OnLevelUpConfirm(int str, int mana, float health);
 
     void OnLevelUpCancel();
 

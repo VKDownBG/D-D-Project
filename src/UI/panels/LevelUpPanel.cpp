@@ -6,7 +6,7 @@
 #include <algorithm>
 
 LevelUpPanel::LevelUpPanel()
-    : panelBounds({static_cast<float>(GetScreenWidth()) / 2 - 150, static_cast<float>(GetScreenHeight()) / 2 - 100, 450, 300}),
+    : panelBounds({55, static_cast<float>(GetScreenHeight()) / 2 - 100, 350, 300}),
       font(GetFontDefault()),
       panelColor({40, 40, 40, 240}),
       borderColor(WHITE),
@@ -356,11 +356,6 @@ void LevelUpPanel::SetupArrowButtons() {
     });
 
     confirmButton = Button(confirmButton.GetBounds(), "Confirm", [this]() {
-        if (heroRef) {
-            ApplyStatsToHero();
-        }
-
-
         if (onConfirm) {
             onConfirm(strengthPoints, manaPoints, healthPoints);
         }
