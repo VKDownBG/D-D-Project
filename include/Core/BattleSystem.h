@@ -28,7 +28,6 @@ public:
 
     void EndBattle(BattleResult result);
 
-    // Battle actions
     double PerformPlayerAttack(AttackType attackType);
 
     double PerformMonsterAttack();
@@ -37,13 +36,12 @@ public:
 
     void PlayerFlee();
 
-    // Battle state queries
     bool IsBattleActive() const;
 
     Hero *GetCurrentPlayer() const { return currentPlayer; }
+
     Monster *GetCurrentMonster() const { return currentMonster; }
 
-    // Setup methods
     void SetMap(Map *map);
 
     void SetBattleEndCallback(const std::function<void(BattleResult)> &callback);

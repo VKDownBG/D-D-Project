@@ -99,6 +99,7 @@ private:
 
     Hero *heroRef;
 
+private:
     void UpdateButtonPositions();
 
     void SetupArrowButtons();

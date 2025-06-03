@@ -75,15 +75,19 @@ public:
 
 private:
     Race race;
+
     int strength;
     int mana;
     float health;
     float maxHealth;
     int level;
     float XP;
+
     Inventory inventory;
+
     Position startingPosition;
     Position currentPosition;
+
     std::string name;
 };
 

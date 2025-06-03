@@ -70,6 +70,7 @@ private:
     Color stoneGray{};
     Color goldAccent{};
 
+private:
     void DrawBackground() const;
 
     void DrawTitle() const;

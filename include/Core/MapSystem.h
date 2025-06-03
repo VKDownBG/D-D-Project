@@ -55,6 +55,7 @@ private:
     std::vector<Monster> enemies;
     std::vector<Treasure> treasures;
 
+private:
     void validateMap() const;
 
     static int parseLevelNumber(const std::string &line);

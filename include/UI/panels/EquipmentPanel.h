@@ -49,6 +49,7 @@ private:
 
     Color panelBackgroundColor;
 
+private:
     void DrawItemIcon(int x, int y, const Item *item) const;
 
     void DrawItemStats(int x, int y, const Item *item, bool showComparison = false) const;

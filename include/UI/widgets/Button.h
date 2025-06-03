@@ -31,17 +31,15 @@ public:
 
     void Draw() const;
 
-    [[nodiscard]] bool IsPressed() const;
+    bool IsPressed() const;
 
-    [[nodiscard]] bool IsHovered() const;
+    bool IsHovered() const;
 
-    [[nodiscard]] bool IsActive() const;
+    bool IsActive() const;
 
     void SetActive(bool active);
 
     Rectangle GetBounds() const;
-
-    //Texture2D &GetTexture() const;
 
     ~Button() = default;
 

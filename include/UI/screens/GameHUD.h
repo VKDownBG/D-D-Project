@@ -54,8 +54,8 @@ private:
 
     ProgressBar hpBar, xpBar;
 
-    // Button characterButton;
-    //bool inventoryExpanded;
+    Button characterButton;
+    bool inventoryExpanded;
 
     Button armorButton;
     Button weaponButton;
@@ -78,8 +78,8 @@ private:
     Color deepRed{};
     Color stoneGray{};
 
-    // float inventoryAnimProgress;
-    // float animSpeed;
+    float inventoryAnimProgress;
+    float animSpeed;
 
     int currentLevel;
     int monstersRemaining;
@@ -87,6 +87,7 @@ private:
 
     bool backgroundLoaded;
 
+private:
     void DrawBackground() const;
 
     void DrawFrame() const;

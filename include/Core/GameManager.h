@@ -21,6 +21,17 @@ public:
     void RunGame();
 
 private:
+    const int screenWidth;
+    const int screenHeight;
+    bool isRunning;
+
+    UIManager *uiManager;
+    Hero *hero;
+    Map *currentMap;
+    Attack *attackSystem;
+    Monster *currentMonster;
+
+private:
     void InitializeSystems();
 
     void HandleRaceSelection(Race race);
@@ -42,16 +53,6 @@ private:
     void TransitionToNextLevel() const;
 
     void PositionHeroAtStart() const;
-
-    const int screenWidth;
-    const int screenHeight;
-    bool isRunning;
-
-    UIManager *uiManager;
-    Hero *hero;
-    Map *currentMap;
-    Attack *attackSystem;
-    Monster *currentMonster;
 };
 
-#endif
+#endif //GAMEMANAGER_H

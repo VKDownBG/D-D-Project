@@ -20,6 +20,7 @@ public:
 private:
     bool isActive = false;
     bool quitSelected = false;
+
     Button quitButton;
 };
 

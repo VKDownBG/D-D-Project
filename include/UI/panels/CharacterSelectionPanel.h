@@ -27,9 +27,7 @@ public:
 
     ~CharacterSelectionPanel();
 
-    // Core methods
     void Initialize();
-
 
     void Show();
 
@@ -39,19 +37,16 @@ public:
 
     void Draw() const;
 
-    // State queries
     bool IsVisible() const;
 
     bool IsSelectionConfirmed() const;
 
     Race GetSelectedRace() const;
 
-    // Event handlers
     void SetOnRaceSelected(std::function<void(Race)> callback);
 
     void SetOnBack(std::function<void()> callback);
 
-    // Reset state
     void Reset();
 
 private:
@@ -60,24 +55,19 @@ private:
 
     Texture2D backgroundTexture;
 
-    // Race data
     std::vector<RaceData> races;
 
-    // UI Elements
     std::vector<std::unique_ptr<Button> > raceButtons;
     Button confirmButton;
     Button backButton;
 
-    // Selection state
     int selectedRaceIndex;
     bool isVisible;
     bool selectionConfirmed;
 
-    // Callbacks
     std::function<void(Race)> onRaceSelected;
     std::function<void()> onBack;
 
-    // Colors and styling
     Color panelColor;
     Color selectedColor;
     Color textColor;
@@ -85,7 +75,6 @@ private:
     Font titleFont;
     Font textFont;
 
-    // Layout constants
     static constexpr int PANEL_PADDING = 40;
     static constexpr int RACE_PANEL_WIDTH = 200;
     static constexpr int RACE_PANEL_HEIGHT = 300;
@@ -93,7 +82,6 @@ private:
     static constexpr int BUTTON_HEIGHT = 50;
 
 private:
-    // Helper methods
     void LoadBackgroundImage();
 
     void InitializeRaceData();

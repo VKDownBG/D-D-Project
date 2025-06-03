@@ -9,7 +9,7 @@
 
 class Treasure {
 public:
-    explicit Treasure(const Position &pos);
+    Treasure(const Position &pos);
 
     Position getPosition() const;
 
@@ -21,6 +21,7 @@ public:
 
 private:
     Position pos;
+
     bool collected = false;
 };
 

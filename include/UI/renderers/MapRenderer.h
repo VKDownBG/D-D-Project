@@ -82,6 +82,7 @@ private:
     const Color BORDER_COLOR = {80, 80, 120, 255};
     const Color BORDER_GLOW = {100, 100, 180, 150};
 
+private:
     void UpdateCamera();
 
     void UpdateVisibleArea() const;

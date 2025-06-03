@@ -27,6 +27,7 @@ private:
 
     bool isPlayerTurn;
 
+private:
     double calculateBaseAttack(float baseStat, float bonus, float armorReduction);
 
     double calculateWeaponAttack(const Entity &attacker, const Entity &defender);
