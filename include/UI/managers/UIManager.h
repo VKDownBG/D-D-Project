@@ -36,6 +36,9 @@ struct Portal {
     bool isActive;
     float animationTime;
 
+    Portal() : position(0, 0), isActive(true), animationTime(0) {
+    }
+
     Portal(const Position &pos) : position(pos), isActive(true), animationTime(0.0f) {
     };
 };

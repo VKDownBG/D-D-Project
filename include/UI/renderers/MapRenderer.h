@@ -19,11 +19,15 @@ public:
 
     void LoadResources();
 
+    void LoadPortalTexture(const std::string &path);
+
     void Unload();
 
     void Update(float deltaTime);
 
     void Draw() const;
+
+    void DrawPortal(const Position &position, float animationTime) const;
 
     float GetCellSize() const;
 
@@ -72,6 +76,7 @@ private:
     Texture2D monsterTexture;
     Texture2D bossTexture;
     Texture2D treasureTexture;
+    Texture2D portalTexture;
 
     Font gameFont;
 

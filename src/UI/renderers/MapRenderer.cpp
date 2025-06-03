@@ -43,6 +43,7 @@ void MapRenderer::LoadResources() {
     monsterTexture = LoadTexture("C:/DandD/assets/entities/monster_icon.png");
     bossTexture = LoadTexture("C:/DandD/assets/entities/boss_icon.png");
     treasureTexture = LoadTexture("C:/DandD/assets/objects/treasure_icon.png");
+    portalTexture = LoadTexture("C:/DandD/assets/objects/portal_icon.png");
 
     gameFont = LoadFont("C:/DandD/assets/fonts/.TTF");
 
@@ -58,6 +59,7 @@ void MapRenderer::Unload() {
     UnloadTexture(monsterTexture);
     UnloadTexture(bossTexture);
     UnloadTexture(treasureTexture);
+    UnloadTexture(portalTexture);
     UnloadFont(gameFont);
 
     resourcesLoaded = false;
@@ -158,6 +160,28 @@ void MapRenderer::Draw() const {
     DrawTiles();
     DrawEntities();
     DrawMinimap();
+}
+
+void MapRenderer::DrawPortal(const Position &position, float animationTime) const {
+    if (!IsInVisibleArea(position.x, position.y) || portalTexture.id == 0) return;
+
+    Vector2 screenPos = WorldToScreen(position.x, position.y);
+
+    // Add pulsing animation
+    const float pulseScale = 1.0f + std::sin(animationTime * 4.0f) * 0.1f;
+    const float size = cellSize * pulseScale;
+
+    // Center the scaled portal
+    const float offset = (cellSize - size) * 0.5f;
+    screenPos.x += offset;
+    screenPos.y += offset;
+
+    DrawTexturePro(
+        portalTexture,
+        {0, 0, static_cast<float>(portalTexture.width), static_cast<float>(portalTexture.height)},
+        {screenPos.x, screenPos.y, size, size},
+        {0, 0}, 0.0f, WHITE
+    );
 }
 
 void MapRenderer::DrawMapBorder() const {

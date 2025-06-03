@@ -22,6 +22,8 @@ public:
 
     char getCell(const Position &pos) const;
 
+    void setCell(const Position &pos, char c);
+
     size_t getWidth() const;
 
     size_t getHeight() const;

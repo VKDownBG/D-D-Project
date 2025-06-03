@@ -266,8 +266,28 @@ void UIManager::CreatePortal() {
 
     const Position playerPos = hero->getCurrentPosition();
 
-    if (playerPos.x + 1 == '#' || playerPos.y + 1 == '#' || playerPos.x - 1 == '#' || playerPos.y - 1 == '#') {
-        DrawPortals();
+    // Check adjacent positions for walls (prioritize: right, down, left, up)
+    const Position directions[] = {
+        {playerPos.x + 1, playerPos.y}, // Right
+        {playerPos.x, playerPos.y + 1}, // Down
+        {playerPos.x - 1, playerPos.y}, // Left
+        {playerPos.x, playerPos.y - 1} // Up
+    };
+
+    // Find first adjacent wall and place portal there
+    for (const auto &dir: directions) {
+        if (currentMap->getCell(dir) == '#') {
+            Portal portal;
+            portal.position = dir;
+            portal.isActive = true;
+            portal.animationTime = 0.0f;
+            portals.push_back(portal);
+            portalCreated = true;
+
+            // Replace wall with floor in the map so hero can step on it
+            currentMap->setCell(dir, '.');
+            break;
+        }
     }
 }
 
@@ -448,12 +468,8 @@ void UIManager::UpdateLevelTransition(const float deltaTime) {
     transitionTimer += deltaTime;
 
     if (transitionTimer >= 2.0f) {
-        currentLevel++;
-
         const int levelUpPoints = 30;
         ShowLevelUpPanel(levelUpPoints);
-
-        //LoadLevel(currentLevel);
 
         transitionTimer = 0.0f;
         isTransitioning = false;
@@ -529,24 +545,9 @@ void UIManager::DrawDefeat() const {
 void UIManager::DrawPortals() const {
     if (!mapRenderer || portals.empty()) return;
 
-    const float cellSize = mapRenderer->GetCellSize();
-
     for (const auto &portal: portals) {
         if (portal.isActive) {
-            // Convert world position to screen coordinates
-            Vector2 screenPos = mapRenderer->WorldToScreen(portal.position.x, portal.position.y);
-
-            // Adjust to center of cell
-            screenPos.x += cellSize / 2;
-            screenPos.y += cellSize / 2;
-
-            const float pulseScale = 1.0f + std::sin(portal.animationTime * 4.0f) * 0.2f;
-            const float alpha = (std::sin(portal.animationTime * 3.0f) + 1.0f) * 127;
-            const Color portalColor = {100, 200, 255, static_cast<unsigned char>(alpha)};
-
-            // Draw portal at corrected position
-            DrawCircleV(screenPos, 20.0f * pulseScale, portalColor);
-            DrawCircleLinesV(screenPos, 25.0f * pulseScale, {150, 255, 255, 200});
+            mapRenderer->DrawPortal(portal.position, portal.animationTime);
         }
     }
 }
@@ -654,6 +655,7 @@ void UIManager::OnLevelUpConfirm(const int str, const int mana, const float heal
         hero->levelUp(str, mana, health);
     }
 
+    currentLevel++;
     LoadLevel(currentLevel);
 
     HideLevelUpPanel();

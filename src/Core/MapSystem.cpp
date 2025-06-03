@@ -156,6 +156,12 @@ char Map::getCell(const Position &pos) const {
     return grid[pos.y][pos.x];
 }
 
+void Map::setCell(const Position &pos, const char c) {
+    if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height) {
+        grid[pos.y][pos.x] = c;
+    }
+}
+
 size_t Map::getWidth() const {
     return width;
 }
