@@ -374,7 +374,7 @@ void MapRenderer::SetCellSize(const float size) {
     visibleArea.needsUpdate = true;
 }
 
-void MapRenderer::SetVisibleRange(int cellsX, int cellsY) {
+void MapRenderer::SetVisibleRange(const int cellsX, const int cellsY) {
     camera.visibleCellsX = std::max(5, cellsX);
     camera.visibleCellsY = std::max(5, cellsY);
     visibleArea.needsUpdate = true;

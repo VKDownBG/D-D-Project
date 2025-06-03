@@ -13,7 +13,7 @@ UIManager::UIManager(const int _screenWidth, const int _screenHeight)
       mainMenu(nullptr), gameHUD(nullptr), battlePanel(nullptr), levelUpPanel(nullptr),
       equipmentPanel(nullptr), mapRenderer(nullptr),
       hero(nullptr), currentMap(nullptr), attackSystem(nullptr), currentBattleMonster(nullptr),
-      battleSystem(nullptr),
+      battleSystem(nullptr), defeatPanel(nullptr),
       currentLevel(1), levelComplete(false), portalCreated(false),
       mapFilePath("C:/DandD/assets/maps/maps.txt"),
       transitionTimer(0.0f), isTransitioning(false) {
@@ -84,6 +84,9 @@ void UIManager::Unload() {
 
     delete equipmentPanel;
     equipmentPanel = nullptr;
+
+    delete defeatPanel;
+    defeatPanel = nullptr;
 }
 
 void UIManager::Update(const float deltaTime) {
@@ -105,6 +108,9 @@ void UIManager::Update(const float deltaTime) {
             break;
         case UIState::LEVEL_TRANSITION:
             UpdateLevelTransition(deltaTime);
+            break;
+        case UIState::DEFEAT:
+            UpdateDefeat(deltaTime);
             break;
     }
 
@@ -132,6 +138,9 @@ void UIManager::Draw() const {
             break;
         case UIState::LEVEL_TRANSITION:
             DrawLevelTransition();
+            break;
+        case UIState::DEFEAT:
+            DrawDefeat();
             break;
     }
 }
@@ -178,7 +187,8 @@ void UIManager::LoadGame() {
 }
 
 bool UIManager::ShouldQuit() const {
-    return mainMenu && mainMenu->IsQuitSelected();
+    return (mainMenu && mainMenu->IsQuitSelected()) ||
+           (defeatPanel && defeatPanel->ShouldQuit());
 }
 
 void UIManager::LoadLevel(const int levelNumber) {
@@ -412,14 +422,21 @@ void UIManager::UpdateLevelTransition(const float deltaTime) {
     transitionTimer += deltaTime;
 
     if (transitionTimer >= 2.0f) {
-        currentLevel++;
-        LoadLevel(currentLevel);
-
         const int levelUpPoints = 30;
         ShowLevelUpPanel(levelUpPoints);
 
+        currentLevel++;
+        LoadLevel(currentLevel);
+
+
         transitionTimer = 0.0f;
         isTransitioning = false;
+    }
+}
+
+void UIManager::UpdateDefeat(const float deltaTime) {
+    if (defeatPanel) {
+        defeatPanel->Update();
     }
 }
 
@@ -475,6 +492,12 @@ void UIManager::DrawLevelTransition() const {
     const std::string text = "Level Complete! Preparing next level...";
     const int textWidth = MeasureText(text.c_str(), 40);
     DrawText(text.c_str(), (screenWidth - textWidth) / 2, screenHeight / 2 - 20, 40, WHITE);
+}
+
+void UIManager::DrawDefeat() const {
+    if (defeatPanel) {
+        defeatPanel->Draw();
+    }
 }
 
 void UIManager::DrawPortals() const {
@@ -535,9 +558,7 @@ void UIManager::InitializeGameplay() {
     const Weapon *weapon = &hero->GetInventory().GetWeapon();
     gameHUD->SetWeapon(weapon);
 
-    const Armor *armor;
-    if (hero->hasArmor()) armor = &hero->GetInventory().GetArmor();
-    armor = new Armor("Empty", 0, 0);
+    const Armor *armor = new Armor("Empty", 0, 0);
     gameHUD->SetArmor(armor);
 
     const Spell *spell = &hero->GetInventory().GetSpell();
@@ -566,20 +587,30 @@ bool UIManager::AreAllMonstersDefeated() const {
     if (!currentMap) return false;
 
     const auto &monsters = currentMap->getMonstersConst();
-    return std::all_of(monsters.begin(), monsters.end(),
-                       [&](const Monster &monster) {
-                           return monster.GetType() != MonsterType::MONSTER || monster.isDefeated();
-                       });
+
+    // Check if there are any regular monsters that are not defeated
+    for (const Monster &monster: monsters) {
+        if (monster.GetType() == MonsterType::MONSTER && !monster.isDefeated()) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool UIManager::AreAllBossesDefeated() const {
     if (!currentMap) return false;
 
     const auto &monsters = currentMap->getMonsters();
-    return std::all_of(monsters.begin(), monsters.end(),
-                       [](const Monster &monster) {
-                           return monster.GetType() != MonsterType::BOSS || monster.isDefeated();
-                       });
+
+    // Check if there are any bosses that are not defeated
+    for (const Monster &monster: monsters) {
+        if (monster.GetType() == MonsterType::BOSS && !monster.isDefeated()) {
+            return false;
+        }
+    }
+
+    return true; // All bosses are either defeated or don't exist
 }
 
 Position UIManager::FindNearestWallPosition(const Position &playerPos) const {
@@ -600,7 +631,7 @@ std::vector<Position> UIManager::GetAdjacentWallPositions(const Position &player
         for (int dy = -1; dy <= 1; dy++) {
             if (dx == 0 && dy == 0) continue;
 
-            Position checkPos(playerPos.x + dx, playerPos.y + dy);
+            const Position checkPos(playerPos.x + dx, playerPos.y + dy);
             if (IsPositionWall(checkPos) && IsValidPortalPosition(checkPos)) {
                 wallPositions.push_back(checkPos);
             }
@@ -621,12 +652,12 @@ Position UIManager::GetClosestReachableWall(const Position &playerPos) const {
             for (int dy = -radius; dy <= radius; dy++) {
                 if (abs(dx) != radius && abs(dy) != radius) continue;
 
-                Position checkPos(playerPos.x + dx, playerPos.y + dy);
+                const Position checkPos(playerPos.x + dx, playerPos.y + dy);
 
                 if (IsPositionWall(checkPos) &&
                     IsValidPortalPosition(checkPos) &&
                     IsPositionReachable(playerPos, checkPos)) {
-                    float distance = sqrt(dx * dx + dy * dy);
+                    const float distance = sqrt(dx * dx + dy * dy);
                     if (distance < minDistance) {
                         minDistance = distance;
                         closestWall = checkPos;
@@ -717,16 +748,15 @@ void UIManager::OnBattleEnd(const BattleResult result) {
     }
 
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
-        // Remove defeated monster from map
-        auto &monsters = currentMap->getMonsters();
-        monsters.erase(
-            std::remove_if(monsters.begin(), monsters.end(),
-                           [this](const Monster &monster) {
-                               return &monster == currentBattleMonster;
-                           }),
-            monsters.end()
-        );
         UpdateHUDStats();
+    }
+
+    if (result == BattleResult::PLAYER_LOST) {
+        if (!defeatPanel) {
+            defeatPanel = new DefeatPanel();
+        }
+        defeatPanel->Show();
+        SetState(UIState::DEFEAT);
     }
 }
 

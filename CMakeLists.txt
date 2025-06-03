@@ -48,6 +48,8 @@ add_executable(DANDD
         src/Utils/ProbabilitySystem.cpp
         include/UI/panels/LevelUpPanel.h
         src/UI/panels/LevelUpPanel.cpp
+        include/UI/panels/DefeatPanel.h
+        src/UI/panels/DefeatPanel.cpp
 )
 
 # Link libraries

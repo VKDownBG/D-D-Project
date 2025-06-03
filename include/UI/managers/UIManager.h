@@ -10,6 +10,7 @@
 #include "C:/DandD/include/UI/panels/BattlePanel.h"
 #include "C:/DandD/include/UI/panels/LevelUpPanel.h"
 #include "C:/DandD/include/UI/panels/EquipmentPanel.h"
+#include "C:/DandD/include/UI/panels/DefeatPanel.h"
 #include "C:/DandD/include/UI/renderers/MapRenderer.h"
 #include "C:/DandD/include/Entities/Hero.h"
 #include "C:/DandD/include/Entities/Monster.h"
@@ -26,7 +27,8 @@ enum class UIState {
     BATTLE,
     LEVEL_UP,
     EQUIPMENT_SELECTION,
-    LEVEL_TRANSITION
+    LEVEL_TRANSITION,
+    DEFEAT
 };
 
 struct Portal {
@@ -135,6 +137,7 @@ private:
     Attack *attackSystem;
     Monster *currentBattleMonster;
     BattleSystem *battleSystem;
+    DefeatPanel *defeatPanel;
 
     int currentLevel;
     std::vector<Portal> portals;
@@ -158,6 +161,8 @@ private:
 
     void UpdateLevelTransition(float deltaTime);
 
+    void UpdateDefeat(float deltaTime);
+
     void DrawMainMenu() const;
 
     void DrawGameplay() const;
@@ -169,6 +174,8 @@ private:
     void DrawEquipmentSelection() const;
 
     void DrawLevelTransition() const;
+
+    void DrawDefeat() const;
 
     void DrawPortals() const;
 
