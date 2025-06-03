@@ -1,21 +1,18 @@
-//
-// Created by Lenovo on 4.5.2025 г.
-//
-
-#ifndef BATTLESYSTEM_H
-#define BATTLESYSTEM_H
+#pragma once
 
 #include "C:/DandD/include/Entities/Hero.h"
 #include "C:/DandD/include/Entities/Monster.h"
 #include "C:/DandD/include/Utils/Attack.h"
-#include "C:/DandD/include/UI/panels/BattlePanel.h"
-#include "C:/DandD/include/Core/MapSystem.h"
 #include "C:/DandD/include/Utils/Position.h"
+#include "C:/DandD/include/Core/MapSystem.h"
 #include <functional>
 
-const double LEVEL_XP_MULTIPLIER = 1.5;
-const int BASE_XP_REWARD = 100;
-const double HEALTH_RESTORE_PERCENTAGE = 0.5;
+enum class BattleResult {
+    ONGOING,
+    PLAYER_WON,
+    PLAYER_LOST,
+    PLAYER_FLED
+};
 
 class BattleSystem {
 public:
@@ -23,45 +20,48 @@ public:
 
     ~BattleSystem();
 
-    void Update();
-
-    void Draw() const;
-
+    // Battle management
     bool CheckForBattle(Hero *player, const Position &newPosition);
 
     void StartBattle(Hero *player, Monster *monster);
 
+    void EndBattle(BattleResult result);
+
+    // Battle actions
+    double PerformPlayerAttack(AttackType attackType);
+
+    double PerformMonsterAttack();
+
+    bool CanPlayerFlee() const;
+
+    void PlayerFlee();
+
+    // Battle state queries
     bool IsBattleActive() const;
 
-    bool IsBattleFinished() const;
+    Hero *GetCurrentPlayer() const { return currentPlayer; }
+    Monster *GetCurrentMonster() const { return currentMonster; }
 
-    BattleResult GetBattleResult() const;
-
-    void SetFont(const Font &font);
-
+    // Setup methods
     void SetMap(Map *map);
 
     void SetBattleEndCallback(const std::function<void(BattleResult)> &callback);
 
-    bool determineFirstTurn() const;
-
 private:
-    void HandleBattleEnd();
+    static constexpr double HEALTH_RESTORE_PERCENTAGE = 0.3;
 
-    Monster *GetMonsterAtPosition(const Position &pos) const;
-
-    BattlePanel *battlePanel;
     Attack *attackSystem;
     Map *gameMap;
-
     Hero *currentPlayer;
     Monster *currentMonster;
     double playerHealthBeforeBattle;
-
     bool battleActive;
-    bool battleInitialized;
-
     std::function<void(BattleResult)> onBattleEnd;
-};
 
-#endif //BATTLESYSTEM_H
+private:
+    Monster *GetMonsterAtPosition(const Position &pos) const;
+
+    void HandleBattleEnd();
+
+    bool DetermineFirstTurn() const;
+};

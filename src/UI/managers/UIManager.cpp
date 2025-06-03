@@ -13,6 +13,7 @@ UIManager::UIManager(const int _screenWidth, const int _screenHeight)
       mainMenu(nullptr), gameHUD(nullptr), battlePanel(nullptr), levelUpPanel(nullptr),
       equipmentPanel(nullptr), mapRenderer(nullptr),
       hero(nullptr), currentMap(nullptr), attackSystem(nullptr), currentBattleMonster(nullptr),
+      battleSystem(nullptr),
       currentLevel(1), levelComplete(false), portalCreated(false),
       mapFilePath("C:/DandD/assets/maps/maps.txt"),
       transitionTimer(0.0f), isTransitioning(false) {
@@ -29,8 +30,15 @@ void UIManager::Initialize() {
     if (!levelUpPanel) levelUpPanel = new LevelUpPanel();
     if (!equipmentPanel) equipmentPanel = new EquipmentPanel(hero);
     if (!mapRenderer) mapRenderer = new MapRenderer(screenWidth, screenHeight);
+    if (!battleSystem) battleSystem = new BattleSystem();
 
     if (mainMenu) mainMenu->Initialize();
+
+    if (battleSystem) {
+        battleSystem->SetBattleEndCallback([this](const BattleResult result) {
+            OnBattleEnd(result);
+        });
+    }
 
     if (levelUpPanel) {
         levelUpPanel->SetOnConfirm([this](const int str, const int mana, const int health) {
@@ -64,6 +72,9 @@ void UIManager::Unload() {
         delete mapRenderer;
         mapRenderer = nullptr;
     }
+
+    delete battleSystem;
+    battleSystem = nullptr;
 
     delete battlePanel;
     battlePanel = nullptr;
@@ -222,10 +233,16 @@ void UIManager::CreatePortal() {
 }
 
 void UIManager::StartBattle(Hero *heroRef, Monster *monster) {
-    if (!battlePanel || !heroRef || !monster || !attackSystem) return;
+    if (!battlePanel || !heroRef || !monster || !battleSystem) return;
 
     currentBattleMonster = monster;
-    battlePanel->StartBattle(heroRef, monster, attackSystem);
+
+    // Start battle in BattleSystem
+    battleSystem->StartBattle(heroRef, monster);
+
+    // Start battle UI in BattlePanel
+    battlePanel->StartBattle(heroRef, monster, battleSystem);
+
     SetState(UIState::BATTLE);
 }
 
@@ -240,7 +257,7 @@ void UIManager::EndBattle() {
 }
 
 bool UIManager::IsBattleActive() const {
-    return currentState == UIState::BATTLE && battlePanel && battlePanel->IsActive();
+    return battleSystem && battleSystem->IsBattleActive();
 }
 
 BattleResult UIManager::GetBattleResult() const {
@@ -323,6 +340,9 @@ Hero *UIManager::GetHero() const {
 
 void UIManager::SetCurrentMap(Map *map) {
     currentMap = map;
+    if (battleSystem) {
+        battleSystem->SetMap(map);
+    }
 }
 
 Map *UIManager::GetCurrentMap() const {
@@ -691,7 +711,13 @@ void UIManager::OnEquipmentEquip() {
 }
 
 void UIManager::OnBattleEnd(const BattleResult result) {
+    // Notify the battle panel about the end result
+    if (battlePanel) {
+        battlePanel->OnBattleEnd(result);
+    }
+
     if (result == BattleResult::PLAYER_WON && currentBattleMonster && currentMap) {
+        // Remove defeated monster from map
         auto &monsters = currentMap->getMonsters();
         monsters.erase(
             std::remove_if(monsters.begin(), monsters.end(),
@@ -702,4 +728,14 @@ void UIManager::OnBattleEnd(const BattleResult result) {
         );
         UpdateHUDStats();
     }
+}
+
+bool UIManager::CheckForBattle(const Position &newPosition) {
+    if (!hero || !battleSystem) return false;
+
+    if (battleSystem->CheckForBattle(hero, newPosition)) {
+        SetState(UIState::BATTLE);
+        return true;
+    }
+    return false;
 }

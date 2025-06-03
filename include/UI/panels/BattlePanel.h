@@ -10,6 +10,7 @@
 #include "C:/DandD/include/Utils/Attack.h"
 #include "C:/DandD/include/Entities/Hero.h"
 #include "C:/DandD/include/Entities/Monster.h"
+#include "C:/DandD/include/Core/BattleSystem.h"
 #include <string>
 #include <vector>
 
@@ -21,20 +22,13 @@ enum class BattleState {
     FINISHED
 };
 
-enum class BattleResult {
-    ONGOING,
-    PLAYER_WON,
-    PLAYER_LOST,
-    PLAYER_FLED
-};
-
 class BattlePanel {
 public:
     BattlePanel();
 
     ~BattlePanel() = default;
 
-    void StartBattle(Hero *_player, Monster *monster, Attack *attackSystem);
+    void StartBattle(Hero *_player, Monster *monster, BattleSystem *battleSys);
 
     void Update();
 
@@ -52,11 +46,13 @@ public:
 
     void SetAnimationSpeed(float speed);
 
-    void HandlePlayerAttack(AttackType attackType);
+    // void HandlePlayerAttack(AttackType attackType);
 
-    void HandleMonsterAttack();
+    // void HandleMonsterAttack();
 
-    void EndBattle(BattleResult result);
+    // void EndBattle(BattleResult result);
+
+    void OnBattleEnd(BattleResult result);
 
 private:
     Rectangle panelBounds;
@@ -79,7 +75,7 @@ private:
 
     Hero *player;
     Monster *currentMonster;
-    Attack *battleSystem;
+    BattleSystem *battleSystem;
 
     Color panelColor;
     Color headerColor;
@@ -114,6 +110,8 @@ private:
     void onSpellAttack();
 
     void onFlee();
+
+    void HandleMonsterTurn();
 };
 
 #endif //BATTLEPANEL_H

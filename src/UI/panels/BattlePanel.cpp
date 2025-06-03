@@ -1,7 +1,3 @@
-//
-// Created by Lenovo on 24.5.2025 г.
-//
-
 #include "C:/DandD/include/UI/panels/BattlePanel.h"
 #include <algorithm>
 #include <cmath>
@@ -15,7 +11,7 @@ BattlePanel::BattlePanel()
       logScrollOffset(0.0f),
       player(nullptr),
       currentMonster(nullptr),
-      battleSystem(nullptr),
+      battleSystem(nullptr), // Now used for UI callbacks only
       panelColor({30, 30, 30, 240}),
       headerColor({50, 50, 50, 255}),
       logBackgroundColor({20, 20, 20, 255}),
@@ -23,6 +19,8 @@ BattlePanel::BattlePanel()
       uiFont(GetFontDefault()),
       isPlayerTurn(true),
       waitingForInput(false) {
+    
+    // Initialize UI bounds and buttons (same as before)
     float screenWidth = GetScreenWidth();
     float screenHeight = GetScreenHeight();
 
@@ -45,6 +43,7 @@ BattlePanel::BattlePanel()
 
     panelBounds = hiddenBounds;
 
+    // Initialize buttons (same as before)
     const float buttonWidth = 120;
     const float buttonHeight = 40;
     const float buttonY = targetBounds.y + targetBounds.height - 60;
@@ -56,7 +55,7 @@ BattlePanel::BattlePanel()
         "Weapon",
         [this]() { onWeaponAttack(); }
     );
-    weaponButton.SetColors(DARKGREEN,GREEN, LIGHTGRAY,WHITE);
+    weaponButton.SetColors(DARKGREEN, GREEN, LIGHTGRAY, WHITE);
     weaponButton.SetRoundedCorners(5.0f);
 
     spellButton = Button(
@@ -64,7 +63,7 @@ BattlePanel::BattlePanel()
         "Spell",
         [this]() { onSpellAttack(); }
     );
-    spellButton.SetColors(DARKBLUE,BLUE, LIGHTGRAY,WHITE);
+    spellButton.SetColors(DARKBLUE, BLUE, LIGHTGRAY, WHITE);
     spellButton.SetRoundedCorners(5.0f);
 
     fleeButton = Button(
@@ -72,17 +71,16 @@ BattlePanel::BattlePanel()
         "Flee",
         [this]() { onFlee(); }
     );
-
     fleeButton.SetColors(MAROON, RED, PINK, WHITE);
     fleeButton.SetRoundedCorners(5.0f);
 }
 
-void BattlePanel::StartBattle(Hero *_player, Monster *monster, Attack *attackSystem) {
-    if (!_player || !monster) return;
+void BattlePanel::StartBattle(Hero* _player, Monster* monster, BattleSystem* battleSys) {
+    if (!_player || !monster || !battleSys) return;
 
     player = _player;
     currentMonster = monster;
-    battleSystem = attackSystem;
+    battleSystem = battleSys;
 
     currentState = BattleState::ANIMATING_IN;
     battleResult = BattleResult::ONGOING;
@@ -97,13 +95,10 @@ void BattlePanel::StartBattle(Hero *_player, Monster *monster, Attack *attackSys
 void BattlePanel::Update() {
     switch (currentState) {
         case BattleState::ANIMATING_IN:
-
         case BattleState::ANIMATING_OUT:
-            animationProgress = std::clamp(animationProgress +
-                                           GetFrameTime() * animationSpeed * (currentState == BattleState::ANIMATING_IN
-                                                                                  ? 1
-                                                                                  : -1),
-                                           0.0f, 1.0f);
+            animationProgress = std::clamp(animationProgress + 
+                GetFrameTime() * animationSpeed * (currentState == BattleState::ANIMATING_IN ? 1 : -1),
+                0.0f, 1.0f);
 
             if (animationProgress == 1.0f) currentState = BattleState::ACTIVE;
             if (animationProgress == 0.0f) currentState = BattleState::FINISHED;
@@ -112,21 +107,17 @@ void BattlePanel::Update() {
             break;
 
         case BattleState::ACTIVE:
-            if (player && currentMonster) {
-                if (player->isDefeated()) {
-                    EndBattle(BattleResult::PLAYER_LOST);
-                } else if (currentMonster->isDefeated()) {
-                    EndBattle(BattleResult::PLAYER_WON);
-                } else if (isPlayerTurn) {
-                    if (waitingForInput) {
-                        weaponButton.Update(GetMousePosition());
-                        spellButton.Update(GetMousePosition());
-                        fleeButton.Update(GetMousePosition());
-                    } else {
-                        isPlayerTurn = false;
-                    }
-                } else if (!isPlayerTurn) {
-                    HandleMonsterAttack();
+            if (player && currentMonster && battleSystem) {
+                // Check battle state from BattleSystem instead of directly checking entities
+                if (!battleSystem->IsBattleActive()) {
+                    // Battle ended, get result and animate out
+                    // The result should be communicated through callback
+                    currentState = BattleState::ANIMATING_OUT;
+                } else if (isPlayerTurn && waitingForInput) {
+                    // Handle player input
+                    weaponButton.Update(GetMousePosition());
+                    spellButton.Update(GetMousePosition());
+                    fleeButton.Update(GetMousePosition());
                 }
             }
             break;
@@ -136,6 +127,7 @@ void BattlePanel::Update() {
     }
 }
 
+// UI Drawing methods remain the same as before
 void BattlePanel::Draw() const {
     if (currentState == BattleState::HIDDEN || currentState == BattleState::FINISHED) {
         return;
@@ -153,6 +145,98 @@ void BattlePanel::Draw() const {
     }
 }
 
+// Attack handlers now delegate to BattleSystem
+void BattlePanel::onWeaponAttack() {
+    if (!waitingForInput || !isPlayerTurn || !battleSystem) return;
+    
+    double damage = battleSystem->PerformPlayerAttack(AttackType::WEAPON);
+    
+    const std::string attackName = player->GetInventory().GetWeapon().GetName();
+    const std::string logEntry = player->GetName() + " used " + attackName + "! It dealt " + 
+                                std::to_string(static_cast<int>(damage)) + " damage.";
+    addLogEntry(logEntry);
+    
+    waitingForInput = false;
+    
+    // Check if battle is still active after player attack
+    if (battleSystem->IsBattleActive()) {
+        // Monster's turn
+        isPlayerTurn = false;
+        HandleMonsterTurn();
+    }
+}
+
+void BattlePanel::onSpellAttack() {
+    if (!waitingForInput || !isPlayerTurn || !battleSystem) return;
+    
+    double damage = battleSystem->PerformPlayerAttack(AttackType::SPELL);
+    
+    const std::string attackName = player->GetInventory().GetSpell().GetName();
+    const std::string logEntry = player->GetName() + " used " + attackName + "! It dealt " + 
+                                std::to_string(static_cast<int>(damage)) + " damage.";
+    addLogEntry(logEntry);
+    
+    waitingForInput = false;
+    
+    // Check if battle is still active after player attack
+    if (battleSystem->IsBattleActive()) {
+        // Monster's turn
+        isPlayerTurn = false;
+        HandleMonsterTurn();
+    }
+}
+
+void BattlePanel::onFlee() {
+    if (!waitingForInput || !isPlayerTurn || !battleSystem) return;
+    
+    if (battleSystem->CanPlayerFlee()) {
+        addLogEntry(player->GetName() + " fled from battle!");
+        battleSystem->PlayerFlee();
+    } else {
+        addLogEntry("Cannot flee from this battle!");
+        waitingForInput = true;
+    }
+}
+
+void BattlePanel::HandleMonsterTurn() {
+    if (!battleSystem || !battleSystem->IsBattleActive()) return;
+    
+    double damage = battleSystem->PerformMonsterAttack();
+    
+    const std::string logEntry = currentMonster->GetName() + " attacked! You lost " + 
+                                std::to_string(static_cast<int>(damage)) + " HP.";
+    addLogEntry(logEntry);
+    
+    // Check if battle is still active after monster attack
+    if (battleSystem->IsBattleActive()) {
+        // Back to player's turn
+        isPlayerTurn = true;
+        waitingForInput = true;
+    }
+}
+
+// Method to be called by UIManager when battle ends
+void BattlePanel::OnBattleEnd(const BattleResult result) {
+    battleResult = result;
+    
+    switch (result) {
+        case BattleResult::PLAYER_WON:
+            addLogEntry("Victory! " + player->GetName() + " wins!");
+            break;
+        case BattleResult::PLAYER_LOST:
+            addLogEntry("Defeat! " + player->GetName() + " was defeated!");
+            break;
+        case BattleResult::PLAYER_FLED:
+            addLogEntry("You escaped from battle!");
+            break;
+        default:
+            break;
+    }
+    
+    currentState = BattleState::ANIMATING_OUT;
+}
+
+// Rest of the methods remain the same (drawing, logging, etc.)
 void BattlePanel::drawPanel() const {
     DrawRectangleRounded(panelBounds, 0.05f, 10, panelColor);
     DrawRectangleRoundedLines(panelBounds, 0.05f, 10, 2, WHITE);
@@ -223,7 +307,7 @@ void BattlePanel::drawHealthBars() const {
     Vector2 monsterHealthSize = MeasureTextEx(uiFont, monsterHealth.c_str(), 16, 1);
     DrawTextEx(uiFont, monsterHealth.c_str(),
                {monsterHealthBg.x + monsterHealthBg.width - monsterHealthSize.x - 5, monsterHealthBg.y + 2},
-               16, 1,WHITE);
+               16, 1, WHITE);
 }
 
 void BattlePanel::drawBattleLog() const {
@@ -282,95 +366,7 @@ void BattlePanel::drawButtons() const {
                }, 14, 1, LIGHTGRAY);
 }
 
-void BattlePanel::onWeaponAttack() {
-    if (!waitingForInput || !isPlayerTurn) return;
-    HandlePlayerAttack(AttackType::WEAPON);
-}
-
-void BattlePanel::onSpellAttack() {
-    if (!waitingForInput || !isPlayerTurn) return;
-    HandlePlayerAttack(AttackType::SPELL);
-}
-
-void BattlePanel::onFlee() {
-    if (!waitingForInput || !isPlayerTurn) return;
-    addLogEntry(player->GetName() + " fled from battle!");
-    EndBattle(BattleResult::PLAYER_WON);
-}
-
-void BattlePanel::HandlePlayerAttack(const AttackType attackType) {
-    if (!player || !currentMonster || !battleSystem) return;
-
-    waitingForInput = false;
-
-    const std::string attackName = (attackType == AttackType::WEAPON)
-                                       ? player->GetInventory().GetWeapon().GetName()
-                                       : player->GetInventory().GetSpell().GetName();
-
-    const double damage = battleSystem->performAttack(*player, *currentMonster, attackType);
-
-    const std::string logEntry = player->GetName() + " used " + attackName + "! It dealt " +
-                                 std::to_string(static_cast<int>(damage)) + " damage.";
-    addLogEntry(logEntry);
-
-    if (currentMonster->isDefeated()) {
-        addLogEntry(currentMonster->GetName() + " is defeated!");
-        EndBattle(BattleResult::PLAYER_WON);
-    } else {
-        isPlayerTurn = false;
-    }
-}
-
-void BattlePanel::HandleMonsterAttack() {
-    if (!player || !currentMonster || !battleSystem) return;
-
-    AttackType monsterAttackType = (GetRandomValue(0, 1) == 0) ? AttackType::WEAPON : AttackType::SPELL;
-
-    const std::string attackName = (monsterAttackType == AttackType::WEAPON) ? "Claw Attack" : "Fire Breath";
-
-    const double damage = battleSystem->performAttack(*currentMonster, *player, monsterAttackType);
-
-    const std::string logEntry = currentMonster->GetName() + " used " + attackName + "! You lost " +
-                                 std::to_string(static_cast<int>(damage)) + " HP.";
-    addLogEntry(logEntry);
-
-    if (player->isDefeated()) {
-        addLogEntry(player->GetName() + " is defeated!");
-        EndBattle(BattleResult::PLAYER_LOST);
-    } else {
-        isPlayerTurn = true;
-        waitingForInput = true;
-    }
-}
-
-void BattlePanel::EndBattle(const BattleResult result) {
-    battleResult = result;
-
-    switch (result) {
-        case BattleResult::PLAYER_WON:
-            addLogEntry("Victory! " + player->GetName() + " wins!");
-            if (battleSystem && player && currentMonster) {
-                battleSystem->rewardExperience(*player, *currentMonster);
-                player->restoreHealthAfterBattle();
-            }
-            break;
-
-        case BattleResult::PLAYER_LOST:
-            addLogEntry("Defeat! " + player->GetName() + " was defeated!");
-            break;
-
-        case BattleResult::PLAYER_FLED:
-            addLogEntry("You escaped from battle!");
-            break;
-
-        default:
-            break;
-    }
-
-    currentState = BattleState::ANIMATING_OUT;
-}
-
-void BattlePanel::addLogEntry(const std::string &entry) {
+void BattlePanel::addLogEntry(const std::string& entry) {
     battleLog.push_back(entry);
     if (battleLog.size() > maxLogLines) {
         battleLog.erase(battleLog.begin());
@@ -393,7 +389,7 @@ BattleResult BattlePanel::GetResult() const {
     return battleResult;
 }
 
-void BattlePanel::SetFont(const Font &font) {
+void BattlePanel::SetFont(const Font& font) {
     uiFont = font;
 }
 

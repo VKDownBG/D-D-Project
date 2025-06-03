@@ -134,6 +134,7 @@ private:
     Map *currentMap;
     Attack *attackSystem;
     Monster *currentBattleMonster;
+    BattleSystem *battleSystem;
 
     int currentLevel;
     std::vector<Portal> portals;
@@ -200,6 +201,8 @@ private:
     void OnEquipmentEquip();
 
     void OnBattleEnd(BattleResult result);
+
+    bool CheckForBattle(const Position &newPosition);
 };
 
 #endif //UIMANAGER_H

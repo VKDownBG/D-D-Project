@@ -16,8 +16,6 @@ public:
 
     double performAttack(const Entity &attacker, Entity &defender, AttackType type);
 
-    //bool simulateBattle(Hero &player, Monster &monster);
-
     void rewardExperience(Hero &player, const Monster &monster);
 
     std::string getAttackName(const Entity &attacker, AttackType type);
@@ -36,14 +34,6 @@ private:
     double calculateSpellAttack(const Entity &attacker, const Entity &defender);
 
     bool isCriticalHit() const;
-
-    void displayBattleStartMessage(const Entity &player, const Entity &monster);
-
-    void displayTurnMessage(const Entity &entity, bool isPlayerTurn);
-
-    void displayBattleEndMessage(const Entity &winner, const Entity &loser);
-
-    void displayCriticalHitMessage(double bonusDamage, const Entity &target);
 };
 
 #endif //ATTACK_H
