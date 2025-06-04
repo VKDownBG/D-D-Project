@@ -531,3 +531,9 @@ Rectangle GameHUD::CalculateSpellButtonBounds() const {
         buttonSize
     };
 }
+
+void GameHUD::RefreshInventoryDisplay() {
+    armorButton.Update();
+    weaponButton.Update();
+    spellButton.Update();
+}

@@ -41,6 +41,8 @@ public:
 
     void Unload();
 
+    void RefreshInventoryDisplay();
+
 private:
     Hero *hero;
     const Armor *armorItem;

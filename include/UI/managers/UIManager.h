@@ -139,6 +139,8 @@ public:
 
     void ReinitializeGameHUD();
 
+    void UpdateInventoryButtons();
+
 private:
     int screenWidth;
     int screenHeight;

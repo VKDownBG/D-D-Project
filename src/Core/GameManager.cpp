@@ -225,6 +225,8 @@ void GameManager::Update(const float deltaTime) const {
         uiManager->SetState(UIState::GAMEPLAY);
         uiManager->UpdateMapRenderer();
         uiManager->UpdateHUDStats(); // Refresh HUD after equipment change
+
+        uiManager->UpdateInventoryButtons();
     }
 
     // Level transition check

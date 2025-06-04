@@ -828,16 +828,58 @@ void UIManager::OnEquipmentKeep() {
 
 // Callback for equipping new item.
 void UIManager::OnEquipmentEquip() {
-    if (gameHUD && hero) {
-        gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
-        gameHUD->SetArmor(&hero->GetInventory().GetArmor());
-        gameHUD->SetSpell(&hero->GetInventory().GetSpell());
+    if (!hero || !equipmentPanel || !pendingItem) return;
+
+    // Get non-const reference to inventory for modifications
+    Inventory &inventory = hero->GetInventory(); // This needs to be non-const
+
+    // Actually equip the item to the hero's inventory using the correct methods
+    switch (pendingItem->GetType()) {
+        case ItemType::ARMOR: {
+            const Armor *newArmor = dynamic_cast<const Armor *>(pendingItem.get());
+            if (newArmor) {
+                inventory.newArmor(*newArmor);
+            }
+            break;
+        }
+        case ItemType::WEAPON: {
+            const Weapon *newWeapon = dynamic_cast<const Weapon *>(pendingItem.get());
+            if (newWeapon) {
+                inventory.newWeapon(*newWeapon);
+            }
+            break;
+        }
+        case ItemType::SPELL: {
+            const Spell *newSpell = dynamic_cast<const Spell *>(pendingItem.get());
+            if (newSpell) {
+                inventory.newSpell(*newSpell);
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    // Now update the GameHUD with the new item references
+    if (gameHUD) {
+        gameHUD->SetWeapon(&inventory.GetWeapon());
+        gameHUD->SetArmor(&inventory.GetArmor());
+        gameHUD->SetSpell(&inventory.GetSpell());
     }
 
     // Clear the pending item after successful equip
     pendingItem.reset();
 
     HideEquipmentPanel();
+}
+
+void UIManager::UpdateInventoryButtons() {
+    if (gameHUD && hero) {
+        const Inventory &inventory = hero->GetInventory();
+        gameHUD->SetWeapon(&inventory.GetWeapon());
+        gameHUD->SetArmor(&inventory.GetArmor());
+        gameHUD->SetSpell(&inventory.GetSpell());
+    }
 }
 
 // Callback for handling the end of a battle.
