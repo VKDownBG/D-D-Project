@@ -137,6 +137,8 @@ public:
 
     void ShowEquipmentChoice(std::unique_ptr<Item> newItem);
 
+    void ReinitializeGameHUD();
+
 private:
     int screenWidth;
     int screenHeight;
@@ -212,6 +214,7 @@ private:
     void HandlePortalInteraction();
 
     void InitializeGameplay();
+
 
     void CleanupGameplay();
 

@@ -132,78 +132,107 @@ void LevelUpPanel::Draw() const {
     healthDownButton.Draw();
 }
 
+void LevelUpPanel::ValidateIndividualInput(int &pointValue, const std::string &inputText) {
+    int requestedValue = 0;
+
+    try {
+        requestedValue = std::stoi(inputText);
+    } catch (const std::exception &) {
+        requestedValue = 0;
+    }
+
+    // Calculate the sum of the OTHER two stats (not the one being modified)
+    int otherTwoStats = 0;
+    if (&pointValue == &strengthPoints) {
+        otherTwoStats = manaPoints + healthPoints;
+    } else if (&pointValue == &manaPoints) {
+        otherTwoStats = strengthPoints + healthPoints;
+    } else if (&pointValue == &healthPoints) {
+        otherTwoStats = strengthPoints + manaPoints;
+    }
+
+    // Cap the requested value so total doesn't exceed maxPoints
+    int maxAllowed = maxPoints - otherTwoStats;
+    pointValue = std::max(0, std::min(requestedValue, maxAllowed));
+}
+
 // Handles keyboard input for an active text input field.
 void LevelUpPanel::UpdateInputField(Rectangle inputBounds, bool &isActive, std::string &inputText, int &pointValue) {
-    int key = GetCharPressed(); // Get the character code of the key pressed.
+    int key = GetCharPressed();
 
-    // Process numeric input.
     while (key > 0) {
-        // Allow digits '0'-'9' and limit input length to 2 characters.
         if (key >= '0' && key <= '9' && inputText.length() < 2) {
             if (inputText == "0") {
-                // If current text is "0", replace it with the new digit.
                 inputText = static_cast<char>(key);
             } else {
-                // Otherwise, append the digit.
                 inputText += static_cast<char>(key);
             }
         }
-        key = GetCharPressed(); // Get next character, if any.
+        key = GetCharPressed();
     }
 
-    // Handle backspace input.
     if (IsKeyPressed(KEY_BACKSPACE) && !inputText.empty()) {
-        inputText.pop_back(); // Remove last character.
+        inputText.pop_back();
         if (inputText.empty()) {
-            inputText = "0"; // If empty after backspace, default to "0".
+            inputText = "0";
         }
     }
 
-    // Deactivate input field on Enter key press.
     if (IsKeyPressed(KEY_ENTER)) {
         isActive = false;
     }
 
-    // Convert input text to integer points, handle invalid input.
-    try {
-        pointValue = std::stoi(inputText);
-        ValidateAndUpdatePoints(); // Re-validate points after text input change.
-    } catch (const std::exception &) {
-        // If conversion fails (e.g., text is not a valid number), reset to 0.
-        pointValue = 0;
-        inputText = "0";
-    }
+    // Only use the new validation method
+    ValidateIndividualInput(pointValue, inputText);
+    inputText = std::to_string(pointValue);
+
+    // Just recalculate total - no validation
+    totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
 }
 
 // Validates the allocated points, ensuring they don't exceed maxPoints and adjusting if necessary.
 void LevelUpPanel::ValidateAndUpdatePoints() {
-    // First, ensure no negative point values are assigned (shouldn't happen with current input logic, but for safety).
+    // Ensure no negative point values
     strengthPoints = std::max(0, strengthPoints);
     manaPoints = std::max(0, manaPoints);
     healthPoints = std::max(0, healthPoints);
 
-    // Calculate the current total points allocated.
-    totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
+    // Calculate what the total would be with current values
+    int potentialTotal = strengthPoints + manaPoints + healthPoints;
 
-    // If total allocated points exceed the maximum allowed points:
-    if (totalPointsAllocated > maxPoints) {
-        int excess = totalPointsAllocated - maxPoints; // Calculate how many points are in excess.
+    // If the total exceeds maxPoints, we need to reduce the values
+    if (potentialTotal > maxPoints) {
+        // Calculate how much we need to reduce
+        int excess = potentialTotal - maxPoints;
 
-        // Prioritize reducing health, then mana, then strength to get back within limits.
-        // This distributes the reduction if multiple stats were increased beyond the limit.
-        if (healthPoints >= excess) {
-            healthPoints -= excess;
-        } else if (manaPoints >= excess) {
-            manaPoints -= excess;
-        } else {
-            strengthPoints -= excess;
+        // Reduce each stat proportionally, but ensure no stat goes below 0
+        // This maintains the relative distribution the user intended
+        int totalBeforeReduction = potentialTotal;
+
+        strengthPoints = std::max(0, strengthPoints - (excess * strengthPoints / totalBeforeReduction));
+        manaPoints = std::max(0, manaPoints - (excess * manaPoints / totalBeforeReduction));
+        healthPoints = std::max(0, healthPoints - (excess * healthPoints / totalBeforeReduction));
+
+        // Handle any remaining excess due to integer division
+        int newTotal = strengthPoints + manaPoints + healthPoints;
+        int remainingExcess = maxPoints - newTotal;
+
+        if (remainingExcess < 0) {
+            // Still over limit, reduce from highest value
+            if (strengthPoints >= manaPoints && strengthPoints >= healthPoints && strengthPoints > 0) {
+                strengthPoints += remainingExcess; // remainingExcess is negative
+            } else if (manaPoints >= healthPoints && manaPoints > 0) {
+                manaPoints += remainingExcess;
+            } else if (healthPoints > 0) {
+                healthPoints += remainingExcess;
+            }
         }
-
-        // Recalculate total allocated points after adjustment.
-        totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
     }
 
-    // Update the text in the input fields to reflect the (potentially clamped) integer values.
+    // Recalculate total allocated points
+    totalPointsAllocated = strengthPoints + manaPoints + healthPoints;
+
+    // Update the text in the input fields to reflect the corrected values
     strengthInputText = std::to_string(strengthPoints);
     manaInputText = std::to_string(manaPoints);
     healthInputText = std::to_string(healthPoints);
@@ -338,66 +367,65 @@ void LevelUpPanel::UpdateButtonPositions() {
 
 // Sets up the click actions (lambdas) for all the increment/decrement arrow buttons and the confirm button.
 void LevelUpPanel::SetupArrowButtons() {
-    // Strength Up button: increments strength points if total points are less than max.
     strengthUpButton = Button(strengthUpButton.GetBounds(), "+", [this]() {
         if (totalPointsAllocated < maxPoints) {
             strengthPoints++;
             strengthInputText = std::to_string(strengthPoints);
-            ValidateAndUpdatePoints();
+            // REMOVED: ValidateAndUpdatePoints();
+            totalPointsAllocated = strengthPoints + manaPoints + healthPoints; // Just recalculate
         }
     });
 
-    // Strength Down button: decrements strength points if greater than 0.
     strengthDownButton = Button(strengthDownButton.GetBounds(), "-", [this]() {
         if (strengthPoints > 0) {
             strengthPoints--;
             strengthInputText = std::to_string(strengthPoints);
-            ValidateAndUpdatePoints();
+            // REMOVED: ValidateAndUpdatePoints();
+            totalPointsAllocated = strengthPoints + manaPoints + healthPoints; // Just recalculate
         }
     });
 
-    // Mana Up button: increments mana points if total points are less than max.
     manaUpButton = Button(manaUpButton.GetBounds(), "+", [this]() {
         if (totalPointsAllocated < maxPoints) {
             manaPoints++;
             manaInputText = std::to_string(manaPoints);
-            ValidateAndUpdatePoints();
+            // REMOVED: ValidateAndUpdatePoints();
+            totalPointsAllocated = strengthPoints + manaPoints + healthPoints; // Just recalculate
         }
     });
 
-    // Mana Down button: decrements mana points if greater than 0.
     manaDownButton = Button(manaDownButton.GetBounds(), "-", [this]() {
         if (manaPoints > 0) {
             manaPoints--;
             manaInputText = std::to_string(manaPoints);
-            ValidateAndUpdatePoints();
+            // REMOVED: ValidateAndUpdatePoints();
+            totalPointsAllocated = strengthPoints + manaPoints + healthPoints; // Just recalculate
         }
     });
 
-    // Health Up button: increments health points if total points are less than max.
     healthUpButton = Button(healthUpButton.GetBounds(), "+", [this]() {
         if (totalPointsAllocated < maxPoints) {
             healthPoints++;
             healthInputText = std::to_string(healthPoints);
-            ValidateAndUpdatePoints();
+            // REMOVED: ValidateAndUpdatePoints();
+            totalPointsAllocated = strengthPoints + manaPoints + healthPoints; // Just recalculate
         }
     });
 
-    // Health Down button: decrements health points if greater than 0.
     healthDownButton = Button(healthDownButton.GetBounds(), "-", [this]() {
         if (healthPoints > 0) {
             healthPoints--;
             healthInputText = std::to_string(healthPoints);
-            ValidateAndUpdatePoints();
+            // REMOVED: ValidateAndUpdatePoints();
+            totalPointsAllocated = strengthPoints + manaPoints + healthPoints; // Just recalculate
         }
     });
 
-    // Confirm button: triggers the 'onConfirm' callback with allocated points and hides the panel.
     confirmButton = Button(confirmButton.GetBounds(), "Confirm", [this]() {
         if (onConfirm) {
             onConfirm(strengthPoints, manaPoints, healthPoints);
         }
-        Hide(); // Hide the panel after confirmation.
+        Hide();
     });
 }
 

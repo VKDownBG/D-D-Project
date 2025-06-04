@@ -25,10 +25,6 @@ GameHUD::GameHUD(const int _screenWidth, const int _screenHeight)
     deepRed = {150, 30, 50, 255};
     stoneGray = {80, 80, 90, 200};
 
-    // armorButton = Button(CalculateArmorButtonBounds(), "", nullptr);
-    // weaponButton = Button(CalculateWeaponButtonBounds(), "", nullptr);
-    // spellButton = Button(CalculateSpellButtonBounds(), "", nullptr);
-
     // Alternative color scheme (commented out)
     // frameColor = {30, 30, 45, 255};
     // textColor = {220, 200, 235, 255};

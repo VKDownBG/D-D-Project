@@ -722,15 +722,24 @@ void UIManager::InitializeGameplay() {
         gameHUD->Initialize(hero); // Initialize HUD with hero stats
     }
 
-    // Set weapon, armor, and spell for HUD display.
-    if (hero && gameHUD) {
-        gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
-        gameHUD->SetArmor(&hero->GetInventory().GetArmor());
-        gameHUD->SetSpell(&hero->GetInventory().GetSpell());
-    }
-
     UpdateMapRenderer(); // Ensure map is rendered correctly
     UpdateHUDStats(); // Update HUD stats
+}
+
+// Reinitializes GameHUD with proper item references after hero recreation
+void UIManager::ReinitializeGameHUD() {
+    if (!gameHUD || !hero) return;
+
+    // Reinitialize the GameHUD with the new hero
+    gameHUD->Initialize(hero);
+
+    // Set the item references for the inventory buttons
+    gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
+    gameHUD->SetArmor(&hero->GetInventory().GetArmor());
+    gameHUD->SetSpell(&hero->GetInventory().GetSpell());
+
+    // Update HUD stats as well
+    UpdateHUDStats();
 }
 
 // Cleans up gameplay-specific states (e.g., clear portals, reset flags).

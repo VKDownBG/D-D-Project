@@ -111,6 +111,8 @@ private:
     void DrawInputField(Rectangle bounds, const std::string &text, bool isActive, const std::string &level) const;
 
     bool IsPointInRect(Vector2 point, Rectangle rect) const;
+
+    void ValidateIndividualInput(int &pointValue, const std::string &inputText);
 };
 
 #endif //LEVELUPPANEL_H

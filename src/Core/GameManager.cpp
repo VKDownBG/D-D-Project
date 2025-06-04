@@ -62,7 +62,9 @@ void GameManager::HandleRaceSelection(const Race race) {
 
     // Update systems with new hero
     uiManager->SetHero(hero);
-    //uiManager->UpdateHUDStats();
+
+    uiManager->ReinitializeGameHUD();
+
     uiManager->SetState(UIState::GAMEPLAY);
     LoadCurrentLevel();
 }
