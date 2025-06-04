@@ -34,7 +34,17 @@ void UIManager::Initialize() {
     if (!gameHUD) gameHUD = new GameHUD(screenWidth, screenHeight);
     if (!battlePanel) battlePanel = new BattlePanel();
     if (!levelUpPanel) levelUpPanel = new LevelUpPanel();
-    if (!equipmentPanel) equipmentPanel = new EquipmentPanel(hero); // Note: hero might be nullptr here initially
+    if (!equipmentPanel) {
+        equipmentPanel = new EquipmentPanel(hero); // Note: hero might be nullptr here initially
+
+        equipmentPanel->SetOnEquipCallback([this]() {
+            OnEquipmentEquip();
+        });
+
+        equipmentPanel->SetOnKeepCallback([this]() {
+            OnEquipmentKeep();
+        });
+    }
     if (!mapRenderer) mapRenderer = new MapRenderer(screenWidth, screenHeight);
     if (!battleSystem) battleSystem = new BattleSystem();
     if (!characterSelectionPanel) characterSelectionPanel = new CharacterSelectionPanel(screenWidth, screenHeight);
@@ -818,6 +828,15 @@ void UIManager::OnEquipmentKeep() {
 
 // Callback for equipping new item.
 void UIManager::OnEquipmentEquip() {
+    if (gameHUD && hero) {
+        gameHUD->SetWeapon(&hero->GetInventory().GetWeapon());
+        gameHUD->SetArmor(&hero->GetInventory().GetArmor());
+        gameHUD->SetSpell(&hero->GetInventory().GetSpell());
+    }
+
+    // Clear the pending item after successful equip
+    pendingItem.reset();
+
     HideEquipmentPanel();
 }
 
@@ -861,6 +880,10 @@ bool UIManager::CheckForBattle(const Position &newPosition) {
 
 void UIManager::ShowEquipmentChoice(std::unique_ptr<Item> newItem) {
     if (!equipmentPanel || !hero || !newItem) return;
+
+    if (currentState == UIState::EQUIPMENT_SELECTION) {
+        return; // Avoid showing multiple equipment panels
+    }
 
     // Store the item with ownership
     pendingItem = std::move(newItem);

@@ -29,6 +29,14 @@ public:
 
     void ShowComparison(const Item *newTreasure);
 
+    void SetOnEquipCallback(std::function<void()> callback) {
+        onEquipCallback = callback;
+    }
+
+    void SetOnKeepCallback(std::function<void()> callback) {
+        onKeepCallback = callback;
+    }
+
 private:
     const int PANEL_WIDTH = 300;
     const int PANEL_HEIGHT = 420;
@@ -48,6 +56,9 @@ private:
     Button rightButton;
 
     Color panelBackgroundColor;
+
+    std::function<void()> onEquipCallback;
+    std::function<void()> onKeepCallback;
 
 private:
     void DrawItemIcon(int x, int y, const Item *item) const;

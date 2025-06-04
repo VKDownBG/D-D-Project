@@ -399,15 +399,24 @@ void EquipmentPanel::OnEquipNewItem() {
 
     // Determine the type of the new item and call the appropriate inventory method to equip it.
     const std::string typeStr = newItem->GetTypeStr();
-    if (typeStr == "ARMOR") {
-        const Armor *armorItem = static_cast<const Armor *>(newItem);
-        player->GetInventory().newArmor(*armorItem);
-    } else if (typeStr == "WEAPON") {
-        const Weapon *weaponItem = static_cast<const Weapon *>(newItem);
-        player->GetInventory().newWeapon(*weaponItem);
-    } else if (typeStr == "SPELL") {
-        const Spell *spellItem = static_cast<const Spell *>(newItem);
-        player->GetInventory().newSpell(*spellItem);
+
+    try {
+        if (typeStr == "ARMOR") {
+            const Armor *armorItem = static_cast<const Armor *>(newItem);
+            player->GetInventory().newArmor(*armorItem);
+        } else if (typeStr == "WEAPON") {
+            const Weapon *weaponItem = static_cast<const Weapon *>(newItem);
+            player->GetInventory().newWeapon(*weaponItem);
+        } else if (typeStr == "SPELL") {
+            const Spell *spellItem = static_cast<const Spell *>(newItem);
+            player->GetInventory().newSpell(*spellItem);
+        }
+
+        if (onEquipCallback) {
+            onEquipCallback();
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "Error equipping item: " << e.what() << std::endl;
     }
 
     isVisible = false; // Hide the panel after equipping.
